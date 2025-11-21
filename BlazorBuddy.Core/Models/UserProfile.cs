@@ -9,6 +9,8 @@ namespace BlazorBuddy.Models
         public string DisplayName { get; set; } = "";
         public string ProfilePicture { get; set; } = "";
 
+        public List<ChatGroup> ChatGroups { get; set; } = [];
+
 
     }
 }

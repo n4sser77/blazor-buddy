@@ -4,6 +4,7 @@ using BlazorBuddy.WebApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorBuddy.WebApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251121135125_InitMigration")]
+    partial class InitMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,7 +54,8 @@ namespace BlazorBuddy.WebApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FromUserId")
-                        .HasColumnType("nvarchar(450)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
@@ -62,8 +66,6 @@ namespace BlazorBuddy.WebApp.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ChatGroupId");
-
-                    b.HasIndex("FromUserId");
 
                     b.ToTable("ChatMessages");
                 });
@@ -109,8 +111,9 @@ namespace BlazorBuddy.WebApp.Migrations
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit");
 
-                    b.Property<string>("OwnerId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("StudyPageId")
                         .HasColumnType("uniqueidentifier");
@@ -120,8 +123,6 @@ namespace BlazorBuddy.WebApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
 
                     b.HasIndex("StudyPageId");
 
@@ -138,16 +139,15 @@ namespace BlazorBuddy.WebApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("OwnerId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
 
                     b.ToTable("StudyPages");
                 });
@@ -176,6 +176,9 @@ namespace BlazorBuddy.WebApp.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<Guid?>("ChatGroupId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -195,6 +198,8 @@ namespace BlazorBuddy.WebApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ChatGroupId");
 
                     b.HasIndex("NoteDocumentId");
 
@@ -267,21 +272,6 @@ namespace BlazorBuddy.WebApp.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("ChatGroupUserProfile", b =>
-                {
-                    b.Property<Guid>("ChatGroupsId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ChatGroupsId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("ChatGroupUserProfile");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -458,12 +448,6 @@ namespace BlazorBuddy.WebApp.Migrations
                     b.HasOne("BlazorBuddy.Models.ChatGroup", null)
                         .WithMany("Messages")
                         .HasForeignKey("ChatGroupId");
-
-                    b.HasOne("BlazorBuddy.Models.UserProfile", "FromUser")
-                        .WithMany()
-                        .HasForeignKey("FromUserId");
-
-                    b.Navigation("FromUser");
                 });
 
             modelBuilder.Entity("BlazorBuddy.Models.Link", b =>
@@ -475,28 +459,17 @@ namespace BlazorBuddy.WebApp.Migrations
 
             modelBuilder.Entity("BlazorBuddy.Models.NoteDocument", b =>
                 {
-                    b.HasOne("BlazorBuddy.Models.UserProfile", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId");
-
                     b.HasOne("BlazorBuddy.Models.StudyPage", null)
                         .WithMany("Notes")
                         .HasForeignKey("StudyPageId");
-
-                    b.Navigation("Owner");
-                });
-
-            modelBuilder.Entity("BlazorBuddy.Models.StudyPage", b =>
-                {
-                    b.HasOne("BlazorBuddy.Models.UserProfile", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId");
-
-                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("BlazorBuddy.Models.UserProfile", b =>
                 {
+                    b.HasOne("BlazorBuddy.Models.ChatGroup", null)
+                        .WithMany("Users")
+                        .HasForeignKey("ChatGroupId");
+
                     b.HasOne("BlazorBuddy.Models.NoteDocument", null)
                         .WithMany("Users")
                         .HasForeignKey("NoteDocumentId");
@@ -504,21 +477,6 @@ namespace BlazorBuddy.WebApp.Migrations
                     b.HasOne("BlazorBuddy.Models.StudyPage", null)
                         .WithMany("Users")
                         .HasForeignKey("StudyPageId");
-                });
-
-            modelBuilder.Entity("ChatGroupUserProfile", b =>
-                {
-                    b.HasOne("BlazorBuddy.Models.ChatGroup", null)
-                        .WithMany()
-                        .HasForeignKey("ChatGroupsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BlazorBuddy.Models.UserProfile", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -639,6 +597,8 @@ namespace BlazorBuddy.WebApp.Migrations
             modelBuilder.Entity("BlazorBuddy.Models.ChatGroup", b =>
                 {
                     b.Navigation("Messages");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("BlazorBuddy.Models.NoteDocument", b =>
