@@ -34,7 +34,7 @@ namespace BlazorBuddy.WebApp.Services
                 .FirstOrDefaultAsync(n => n.Id == noteId);
         }
 
-        public async Task<NoteDocument> CreateNoteAsync(string title, string content, string owner, Guid studyPageId)
+        public async Task<NoteDocument> CreateNoteAsync(string title, string content, UserProfile owner, Guid studyPageId)
         {
             var studyPage = await _context.StudyPages
                 .Include(sp => sp.Notes)
@@ -43,8 +43,9 @@ namespace BlazorBuddy.WebApp.Services
             if (studyPage == null)
                 throw new Exception("Study page not found");
 
-            var note = new NoteDocument(owner)
+            var note = new NoteDocument()
             {
+                Owner = owner,
                 Title = title,
                 Content = content
             };
@@ -70,7 +71,7 @@ namespace BlazorBuddy.WebApp.Services
         public async Task<bool> DeleteNoteAsync(Guid noteId, string userId)
         {
             var note = await _context.NoteDocuments.FindAsync(noteId);
-            if (note == null || note.Owner != userId)
+            if (note == null || note.Owner.Id != userId)
                 return false;
 
             _context.NoteDocuments.Remove(note);
