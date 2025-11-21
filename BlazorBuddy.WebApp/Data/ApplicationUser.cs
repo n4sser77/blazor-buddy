@@ -7,10 +7,5 @@ namespace BlazorBuddy.WebApp.Data
     public class ApplicationUser : IdentityUser
     {
         
-<<<<<<< HEAD
-=======
-
-       
->>>>>>> main
     }
 }
