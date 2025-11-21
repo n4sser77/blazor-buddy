@@ -18,7 +18,7 @@ namespace BlazorBuddy.WebApp.Services
             return await _context.StudyPages
                 .Include(sp => sp.Notes)
                 .Include(sp => sp.Users)
-                .Where(sp => sp.Owner == userId || sp.Users.Any(u => u.Id.ToString() == userId))
+                .Where(sp => sp.Owner.Id == userId || sp.Users.Any(u => u.Id.ToString() == userId))
                 .OrderByDescending(sp => sp.Title)
                 .ToListAsync();
         }
@@ -34,10 +34,11 @@ namespace BlazorBuddy.WebApp.Services
                 .FirstOrDefaultAsync(sp => sp.Id == id);
         }
 
-        public async Task<StudyPage> CreateStudyPageAsync(string title, string description, string owner)
+        public async Task<StudyPage> CreateStudyPageAsync(string title, string description, UserProfile user)
         {
-            var studyPage = new StudyPage(owner)
+            var studyPage = new StudyPage()
             {
+                Owner = user,
                 Title = title,
                 Description = description
             };
@@ -45,14 +46,14 @@ namespace BlazorBuddy.WebApp.Services
             _context.StudyPages.Add(studyPage);
             await _context.SaveChangesAsync();
             return studyPage;
-                
+
 
         }
 
         public async Task<bool> UpdateStudyPageAsync(Guid id, string title, string description)
         {
             var studyPage = await _context.StudyPages.FindAsync(id);
-                if (studyPage == null)
+            if (studyPage == null)
                 return false;
 
             studyPage.Title = title;
@@ -65,7 +66,7 @@ namespace BlazorBuddy.WebApp.Services
         public async Task<bool> DeleteStudyPageAsync(Guid id, string userId)
         {
             var studyPage = await _context.StudyPages.FindAsync(id);
-            if (studyPage == null || studyPage.Owner != userId)
+            if (studyPage == null || studyPage.Owner.Id != userId)
                 return false;
 
             _context.StudyPages.Remove(studyPage);

@@ -10,9 +10,6 @@ namespace BlazorBuddy.Models
         public List<NoteDocument> Notes { get; set; } = [];
         public string Color { get; set; } = "";
 
-        public Tag()
-        {
-            Id = Guid.NewGuid();
-        }
+
     }
 }
