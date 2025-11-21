@@ -20,5 +20,7 @@ namespace BlazorBuddy.Models
 
         }
 
+        
+
     }
 }

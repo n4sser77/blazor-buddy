@@ -1,5 +1,96 @@
-﻿<h3>Note</h3>
+﻿@page "/notes/{NoteId:guid}"
+@using BlazorBuddy.Models
+@using BlazorBuddy.WebApp.Services
+@using PSC.Blazor.Components.MarkdownEditor
+@using PSC.Blazor.Components.MarkdownEditor.Enums
+@using PSC.Blazor.Components.MarkdownEditor.EventsArgs
+@inject FakeNoteRepo NoteService
+@* test note *@
+@* /notes/1e8f3d65-4b1f-4a6a-9c78-123456789abc *@
+@rendermode InteractiveServer
+
+
+
+<h3>Edit Note</h3>
+
+@if (CurrentNote != null)
+{
+    <div>
+        <input class="form-control mb-2" placeholder="Title" @bind="CurrentNote.Title" />
+
+        <MarkdownEditor @bind-Value="CurrentNote.Content"
+                        ValueHTMLChanged="@OnMarkdownValueHTMLChanged"
+                        MinHeight="300px"
+                        MaxHeight="600px"
+                        SpellChecker="true">
+            <Toolbar>
+                <MarkdownToolbarButton Action="MarkdownAction.Bold" Icon="fa fa-bold" Title="Bold" />
+                <MarkdownToolbarButton Action="MarkdownAction.Italic" Icon="fa fa-italic" Title="Italic" />
+                <MarkdownToolbarButton Action="MarkdownAction.Strikethrough" Icon="fa fa-strikethrough" Title="Strikethrough" />
+                <MarkdownToolbarButton Action="MarkdownAction.Heading" Icon="fa fa-header" Title="Heading" />
+                <MarkdownToolbarButton Action="MarkdownAction.Quote" Icon="fa fa-quote-left" Title="Blockquote" />
+                <MarkdownToolbarButton Action="MarkdownAction.UnorderedList" Icon="fa fa-list-ul" Title="Unordered List" />
+                <MarkdownToolbarButton Action="MarkdownAction.OrderedList" Icon="fa fa-list-ol" Title="Ordered List" />
+                <MarkdownToolbarButton Action="MarkdownAction.Link" Icon="fa fa-link" Title="Link" />
+                <MarkdownToolbarButton Action="MarkdownAction.Image" Icon="fa fa-picture-o" Title="Image" />
+                <MarkdownToolbarButton Action="MarkdownAction.Code" Icon="fa fa-code" Title="Code Block" />
+                <MarkdownToolbarButton Action="MarkdownAction.HorizontalRule" Icon="fa fa-minus" Title="Horizontal Rule" />
+                <MarkdownToolbarButton Action="MarkdownAction.Preview" Icon="fa fa-eye" Title="Preview" />
+                <MarkdownToolbarButton Action="MarkdownAction.SideBySide" Icon="fa fa-columns" Title="Side by Side" />
+                <MarkdownToolbarButton Action="MarkdownAction.Fullscreen" Icon="fa fa-arrows-alt" Title="Fullscreen" />
+            </Toolbar>
+        </MarkdownEditor>
+
+        <div class="mt-2">
+            <button class="btn btn-primary" @onclick="SaveNote">Save</button>
+        </div>
+    </div>
+}
+else
+{
+    <p>Loading note...</p>
+}
 
 @code {
+    [Parameter]
+    public Guid NoteId { get; set; }
 
+    private NoteDocument? CurrentNote;
+    private List<NoteDocument> notes = [];
+    private string markdownHtml = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        notes = await NoteService.GetAllNoteDocumentsAsync();
+
+        // Try to find note by Id
+        CurrentNote = notes.FirstOrDefault(n => n.Id == NoteId);
+
+        // If note doesn't exist yet, create a fake one
+        if (CurrentNote == null)
+        {
+            CurrentNote = new NoteDocument
+            {
+                Id = NoteId,
+                Title = "New Note",
+                Content = "",
+                Owner = new UserProfile()
+            };
+            await NoteService.AddNoteDocumentAsync(CurrentNote);
+        }
+    }
+
+    private async Task SaveNote()
+    {
+        if (CurrentNote != null)
+        {
+            await NoteService.UpdateNoteDocumentAsync(CurrentNote);
+        }
+    }
+
+    private Task OnMarkdownValueHTMLChanged(string value)
+    {
+        markdownHtml = value;
+        return Task.CompletedTask;
+    }
 }

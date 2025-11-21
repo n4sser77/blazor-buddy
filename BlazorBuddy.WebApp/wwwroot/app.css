@@ -124,3 +124,50 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+
+
+/* Toolbar background */
+.editor-toolbar {
+    background: #121212 !important;
+}
+
+   
+    .editor-toolbar button {
+        color: #ffffff !important;
+    }
+
+       
+        .editor-toolbar button::before {
+            background: #ffffff !important; 
+            color: #000000 !important; 
+            border: 1px solid #ccc !important;
+        }
+
+        .editor-toolbar button:hover {
+            color: #ffffff !important;
+            background: rgba(255,255,255,0.1) !important; 
+            opacity: 1 !important;
+        }
+
+
+
+.CodeMirror {
+    background-color: var(--bg-component) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.CodeMirror-scroll {
+    background-color: var(--bg-component) !important;
+    color: var(--text) !important;
+}
+
+.CodeMirror-cursor {
+    border-left: 2px solid #ffffff !important; /* forced visible */
+    opacity: 1 !important;
+}
+
+.CodeMirror-selected {
+    background-color: rgba(100, 100, 100, 0.3) !important;
+}
