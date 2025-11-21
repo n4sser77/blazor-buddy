@@ -13,7 +13,6 @@ namespace BlazorBuddy.WebApp.Data
         }
 
        
-        public DbSet<ApplicationUser> Users { get; set; }
         public DbSet<StudyPage> StudyPages { get; set; }
         public DbSet<NoteDocument> NoteDocuments { get; set; }
         public DbSet<Tag> Tags { get; set; }
