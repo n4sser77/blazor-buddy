@@ -7,7 +7,7 @@ namespace BlazorBuddy.Models
     {
         public Guid Id { get; set; }
         public string Title { get; set; } = "";
-        public List<AppUser> ListUser { get; set; } = [];
+        public List<UserProfile> ListUser { get; set; } = [];
         public List<ChatMessage> ListMessage { get; set; } = [];
 
         public ChatGroup()
