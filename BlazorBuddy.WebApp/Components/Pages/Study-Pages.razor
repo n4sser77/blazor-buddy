@@ -278,7 +278,15 @@
         if (string.IsNullOrWhiteSpace(newTitle))
             return;
 
-        await StudyPageService.CreateStudyPageAsync(newTitle, newDescription, currentUserId);
+        // Create a demo user profile for now
+        var demoUser = new UserProfile
+        {
+            Id = currentUserId,
+            Username = "Demo User",
+            DisplayName = "Demo User"
+        };
+
+        await StudyPageService.CreateStudyPageAsync(newTitle, newDescription, demoUser);
         
         // Invalidate cache when creating new study page
         StateService.InvalidateCache();
