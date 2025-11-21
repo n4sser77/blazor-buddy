@@ -7,7 +7,7 @@ namespace BlazorBuddy.Models
     {
         public Guid Id { get; set; }
         public string Title { get; set; } = "";
-        public List<NoteDocument> ListNotes { get; set; } = [];
+        public List<NoteDocument> Notes { get; set; } = [];
         public string Color { get; set; } = "";
 
         public Tag()

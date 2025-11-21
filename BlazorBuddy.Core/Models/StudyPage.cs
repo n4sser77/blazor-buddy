@@ -7,9 +7,9 @@ namespace BlazorBuddy.Models
     {
         public Guid Id { get; set; }
         public string Title { get; set; } = "";
-        public List<NoteDocument> ListNote { get; set; } = [];
+        public List<NoteDocument> Notes { get; set; } = [];
         public string Description { get; set; } = "";
-        public List<AppUser> ListUser { get; set; } = [];
+        public List<AppUser> Users { get; set; } = [];
         public string Owner { get; set; }
 
         public StudyPage(string owner)
