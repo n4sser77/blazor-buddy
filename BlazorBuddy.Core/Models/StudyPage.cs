@@ -10,13 +10,13 @@ namespace BlazorBuddy.Models
         public List<NoteDocument> Notes { get; set; } = [];
         public string Description { get; set; } = "";
         public List<UserProfile> Users { get; set; } = [];
-        public string Owner { get; set; }
+        public required UserProfile Owner { get; set; }
 
-        public StudyPage(string owner)
+
+        public StudyPage()
         {
-            Id = Guid.NewGuid();
-            Owner = owner;
 
         }
+
     }
 }

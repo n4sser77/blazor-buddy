@@ -9,9 +9,6 @@ namespace BlazorBuddy.Models
         public string LinkUrl { get; set; } = "";
         public string PreviewImage { get; set; } = "";
 
-        public Link()
-        {
-            Id = Guid.NewGuid();
-        }
+        
     }
 }

@@ -5,15 +5,14 @@ namespace BlazorBuddy.Models
     public class ChatMessage
     {
         public Guid Id { get; set; }
-        public string Content { get; set; } = "";
-        public string FromUserId { get; set; }
+        public required string Content { get; set; } = "";
+
+        public required UserProfile FromUser { get; set; }
         public DateTime SentAt { get; set; } = DateTime.UtcNow;
         public bool IsRead { get; set; } = false;
 
-        public ChatMessage(string fromuserid)
-        {
-            Id = Guid.NewGuid();
-            FromUserId = fromuserid;
-        }
+
+
+
     }
 }
