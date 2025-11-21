@@ -1,13 +1,14 @@
 using BlazorBuddy.WebApp.Components;
 using BlazorBuddy.WebApp.Components.Account;
 using BlazorBuddy.WebApp.Data;
+using BlazorBuddy.WebApp.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -22,9 +23,9 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+// Use in-memory database for development
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseInMemoryDatabase("BlazorBuddyInMemory"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -37,6 +38,10 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// Add application services
+builder.Services.AddScoped<StudyPageService>();
+builder.Services.AddSingleton<StudyPageStateService>(); // Singleton to persist across navigations
 
 var app = builder.Build();
 

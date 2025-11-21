@@ -10,10 +10,10 @@ namespace BlazorBuddy.Models
         public DateTime SentAt { get; set; } = DateTime.UtcNow;
         public bool IsRead { get; set; } = false;
 
-        public ChatMessage(string fromuserid)
+        public ChatMessage(string fromUserId)
         {
             Id = Guid.NewGuid();
-            FromUserId = fromuserid;
+            FromUserId = fromUserId;
         }
     }
 }
