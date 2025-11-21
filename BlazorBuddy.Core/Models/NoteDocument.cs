@@ -9,9 +9,15 @@ namespace BlazorBuddy.Models
         public string Title { get; set; } = "";
         public string Content { get; set; } = "";
         public string Owner { get; set; }
+<<<<<<< HEAD
         public List<UserProfile> ListUser { get; set; } = [];
         public List<Tag> ListTag { get; set; } = [];
         public List<Link> ListLink { get; set; } = [];
+=======
+        public List<AppUser> Users { get; set; } = [];
+        public List<Tag> Tags { get; set; } = [];
+        public List<Link> Links { get; set; } = [];
+>>>>>>> main
         public bool IsVisible { get; set; } = false;
 
         public NoteDocument(string owner)

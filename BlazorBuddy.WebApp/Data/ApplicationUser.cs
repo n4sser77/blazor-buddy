@@ -1,3 +1,4 @@
+using BlazorBuddy.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace BlazorBuddy.WebApp.Data
@@ -6,5 +7,10 @@ namespace BlazorBuddy.WebApp.Data
     public class ApplicationUser : IdentityUser
     {
         
+<<<<<<< HEAD
+=======
+
+       
+>>>>>>> main
     }
 }
