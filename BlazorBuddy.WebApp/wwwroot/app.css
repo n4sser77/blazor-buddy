@@ -1,39 +1,118 @@
+/* =========================================
+   1. GLOBAL VARIABLES (THEME CONFIG)
+   ========================================= */
+:root {
+    /* --- Backgrounds --- */
+    --bg-body: #121212; /* Deep dark background for main page */
+    --bg-component: #1e1e1e; /* Slightly lighter for Sidebar/Cards */
+    --bg-highlight: #2d2d2d; /* Hover states */
+    /* --- Text Hierarchy --- */
+    --text-main: #ffffff; /* Strong White (H1, Titles) */
+    --text-subtitle: #e0e0e0; /* Off-white (Subtitles, body text) */
+    --text-muted: #9e9e9e; /* Grayish (Footer, unimportant) */
+    /* --- Borders & Accents --- */
+    --border-color: #424242; /* Dark Gray Standard Borders */
+    --brand-primary: #375a7f; /* Base primary color */
+    --brand-highlight: #1b6ec2; /* Highlighted border color */
+    --brand-lighter: #4f93db; /* Lighter shade for hover/active interactions */
+    /* --- Functional Colors --- */
+    --link-color: #5c9eff;
+    --success: #26b050;
+    --danger: #e50000;
+}
+
+/* =========================================
+   2. BASE & TYPOGRAPHY
+   ========================================= */
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-subtitle);
+    height: 100%;
+    margin: 0;
+}
+
+h1, .h1 {
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+    h1:focus {
+        outline: none;
+    }
+
+h2, h3, h4, h5, h6, p {
+    color: var(--text-subtitle);
+}
+
+small, .text-muted, footer {
+    color: var(--text-muted) !important;
 }
 
 a, .btn-link {
-    color: #006bb7;
+    color: var(--link-color);
 }
 
+/* =========================================
+   3. BUTTONS & INPUTS
+   ========================================= */
 .btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    color: var(--text-main);
+    background-color: var(--brand-primary);
+    border: 1px solid var(--brand-highlight);
 }
+
+    .btn-primary:hover, .btn-primary:active, .btn-primary:focus {
+        background-color: var(--brand-highlight);
+        border-color: var(--brand-lighter);
+    }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem var(--bg-body), 0 0 0 0.25rem var(--brand-primary);
 }
 
+.form-control {
+    background-color: var(--bg-component);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+    .form-control:focus {
+        background-color: var(--bg-component);
+        border-color: var(--brand-lighter);
+        color: var(--text-main);
+    }
+
+.darker-border-checkbox.form-check-input {
+    border-color: var(--border-color);
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+    color: var(--text-muted);
+    text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+/* =========================================
+   4. BLAZOR UTILITIES
+   ========================================= */
 .content {
     padding-top: 1.1rem;
 }
 
-h1:focus {
-    outline: none;
-}
-
 .valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
+    outline: 1px solid var(--success);
 }
 
 .invalid {
-    outline: 1px solid #e50000;
+    outline: 1px solid var(--danger);
 }
 
 .validation-message {
-    color: #e50000;
+    color: var(--danger);
 }
 
 .blazor-error-boundary {
@@ -45,16 +124,3 @@ h1:focus {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
-
-.darker-border-checkbox.form-check-input {
-    border-color: #929292;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-    color: var(--bs-secondary-color);
-    text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-    text-align: start;
-}

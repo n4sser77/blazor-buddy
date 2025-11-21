@@ -7,7 +7,5 @@ namespace BlazorBuddy.WebApp.Data
     public class ApplicationUser : IdentityUser
     {
         
-
-       
     }
 }
