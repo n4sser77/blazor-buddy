@@ -44,6 +44,11 @@ jobs:
         with:
           dotnet-version: ${{ matrix.version }}
 
+      - name: Restore NuGet Packages
+        run: dotnet restore
+        # This will run restore on all projects, including the submodule,
+        # creating the missing project.assets.json file.
+
       - name: Build Solution
         run: dotnet build
 
