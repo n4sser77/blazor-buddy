@@ -17,14 +17,38 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          # 1. Ensure full history for submodule tracking
+          fetch-depth: 0 
+          # 2. Correctly initialize and update all submodules
+          submodules: 'recursive'
+          # 3. Use the GITHUB_TOKEN (works for public submodules)
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # 4. Make sure credentials persist for submodule operations
+          persist-credentials: true
 
+      - name: Ensure submodules initialized and verify path
+        run: |
+          # 1. Force Git to synchronize and update the submodule contents
+          git submodule sync --recursive
+          git submodule update --init --recursive
+          
+          # 2. Verify that the submodule project file exists where the .csproj expects it
+          # This path comes from your BlazorBuddy.WebApp.csproj:
+          # <ProjectReference Include="..\Libs\BlazorMarkDownEditor\PSC.Blazor.Components.MarkdownEditor\PSC.Blazor.Components.MarkdownEditor.csproj" />
+          echo "Verifying submodule project file existence at expected path..."
+          ls -la Libs/BlazorMarkDownEditor/PSC.Blazor.Components.MarkdownEditor/*.csproj || (echo "ERROR: Submodule .csproj file not found!" && exit 1)
+            
       - name: Setup .NET
         uses: actions/setup-dotnet@v5.0.0
         with:
           dotnet-version: ${{ matrix.version }}
 
+      - name: Restore NuGet Packages
+        run: dotnet restore BlazorBuddy.slnx # Target the solution file directly
+      
       - name: Build Solution
-        run: dotnet build
+        run: dotnet build --no-restore # Add --no-restore since we just ran it
 
       - name: Run Test 
         if: success()

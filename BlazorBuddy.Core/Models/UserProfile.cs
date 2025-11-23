@@ -18,7 +18,7 @@ namespace BlazorBuddy.Models
 
         public UserProfile(string id)
         {
-
+            Id = id;
         }
 
 
