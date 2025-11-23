@@ -45,12 +45,10 @@ jobs:
           dotnet-version: ${{ matrix.version }}
 
       - name: Restore NuGet Packages
-        run: dotnet restore
-        # This will run restore on all projects, including the submodule,
-        # creating the missing project.assets.json file.
-
+        run: dotnet restore BlazorBuddy.slnx # Target the solution file directly
+      
       - name: Build Solution
-        run: dotnet build
+        run: dotnet build --no-restore # Add --no-restore since we just ran it
 
       - name: Run Test 
         if: success()
