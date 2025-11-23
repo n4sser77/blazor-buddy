@@ -16,7 +16,7 @@
     <div class="editor-container">
         <button class="toggle-btn" @onclick="ToggleView">
             @(ShowPreview ? "✏️ Edit" : "👁️ Preview")
-            
+
         </button>
 
         @if (!ShowPreview)
@@ -24,10 +24,10 @@
             <MarkdownEditor @bind-Value="CurrentNote.Content"
                             ValueHTMLChanged="@OnMarkdownValueHTMLChanged"
                             MinHeight="300px"
-                            MaxHeight="600px"
+                            MaxHeight="700px"
                             SpellChecker="true">
-                
-     @*            <Toolbar>
+
+                <Toolbar>
                     <MarkdownToolbarButton Action="MarkdownAction.Bold" Icon="fa fa-bold" Title="Bold" />
                     <MarkdownToolbarButton Action="MarkdownAction.Italic" Icon="fa fa-italic" Title="Italic" />
                     <MarkdownToolbarButton Action="MarkdownAction.Strikethrough" Icon="fa fa-strikethrough" Title="Strikethrough" />
@@ -42,7 +42,8 @@
                     <MarkdownToolbarButton Action="MarkdownAction.Preview" Icon="fa fa-eye" Title="Preview" />
                     <MarkdownToolbarButton Action="MarkdownAction.SideBySide" Icon="fa fa-columns" Title="Side by Side" />
                     <MarkdownToolbarButton Action="MarkdownAction.Fullscreen" Icon="fa fa-arrows-alt" Title="Fullscreen" />
-                </Toolbar> *@
+                </Toolbar>
+
             </MarkdownEditor>
         }
         else
@@ -85,7 +86,7 @@ else
         // Try to find note by Id
         CurrentNote = notes.FirstOrDefault(n => n.Id == NoteId);
 
-        // If note doesn't exist yet, create a fake one
+        // If note doesn't exist yet, create a fake one for testing
         if (CurrentNote == null)
         {
             CurrentNote = new NoteDocument
