@@ -17,7 +17,6 @@
 
     <ProjectReference Include="..\Libs\BlazorMarkdownEditor\PSC.Blazor.Components.MarkdownEditor\PSC.Blazor.Components.MarkdownEditor.csproj" />
 
-
   </ItemGroup>
 
   <ItemGroup>
