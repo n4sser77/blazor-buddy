@@ -15,44 +15,30 @@ jobs:
         version: [10.0]
 
     steps:
-      - name: Checkout code
+      - name: Checkout code (with fixed submodule case)
         uses: actions/checkout@v5
         with:
-          # 1. Ensure full history for submodule tracking
+          # 1. Fetch full history for correct submodule commit resolution
           fetch-depth: 0 
-          # 2. Correctly initialize and update all submodules
+          # 2. Correctly initialize and update all submodules (path casing now fixed in Git)
           submodules: 'recursive'
-          # 3. Use the GITHUB_TOKEN (works for public submodules)
           token: ${{ secrets.GITHUB_TOKEN }}
-          # 4. Make sure credentials persist for submodule operations
           persist-credentials: true
+            
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5.0.0
+        with:
+          dotnet-version: ${{ matrix.version }}
 
-      - name: Find and Export Submodule Project Path
-        id: submodule_path_step
-        run: |
-          # Use find -iname (case-insensitive) to locate the exact path of the .csproj file
-          # The path must start with the top-level directory (Libs/...)
-          PROJECT_PATH=$(find . -iname "PSC.Blazor.Components.MarkdownEditor.csproj" -path "*/Libs/BlazorMarkDownEditor/*" | head -n 1)
-          
-          if [ -z "$PROJECT_PATH" ]; then
-            echo "::error::Submodule project not found. Check repository clone and case."
-            exit 1
-          fi
-
-          echo "Found submodule project at: $PROJECT_PATH"
-          
-          # Export the found path as a variable for subsequent steps
-          echo "PROJECT_PATH=$PROJECT_PATH" >> $GITHUB_OUTPUT
-        
-      - name: Restore Submodule Packages Explicitly
-        run: dotnet restore ${{ steps.submodule_path_step.outputs.PROJECT_PATH }}
-
-      - name: Restore Main Solution
-        run: dotnet restore BlazorBuddy.slnx 
+      # ➡️ CRITICAL STEP: Restore All Projects via Solution File
+      # This ensures all projects, including the submodule, are restored 
+      # and generate the necessary project.assets.json files.
+      - name: Restore Solution NuGet Packages
+        run: dotnet restore BlazorBuddy.slnx
         
       - name: Build Solution
+        # Run the build, skipping restore since we just ran it explicitly.
         run: dotnet build --no-restore
-
       - name: Run Test 
         if: success()
         run: dotnet test
