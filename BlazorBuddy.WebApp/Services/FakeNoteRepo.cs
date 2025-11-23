@@ -18,10 +18,10 @@ public class FakeNoteRepo
         return Task.FromResult(_NoteDocuments.ToList());
     }
 
-    public Task<NoteDocument> GetNoteDocumentByIdAsync(Guid id)
+    public Task<NoteDocument?> GetNoteDocumentByIdAsync(Guid id)
     {
         var NoteDocument = _NoteDocuments.FirstOrDefault(n => n.Id == id);
-        return Task.FromResult(NoteDocument!);
+        return Task.FromResult(NoteDocument);
     }
 
     public Task AddNoteDocumentAsync(NoteDocument NoteDocument)
