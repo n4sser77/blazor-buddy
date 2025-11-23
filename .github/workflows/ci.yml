@@ -35,9 +35,9 @@ jobs:
           
           # 2. Verify that the submodule project file exists where the .csproj expects it
           # This path comes from your BlazorBuddy.WebApp.csproj:
-          # <ProjectReference Include="..\Libs\BlazorMarkDownEditor\PSC.Blazor.Components.MarkdownEditor\PSC.Blazor.Components.MarkdownEditor.csproj" />
+          # <ProjectReference Include="..\Libs\BlazorMarkdownEditor\PSC.Blazor.Components.MarkdownEditor\PSC.Blazor.Components.MarkdownEditor.csproj" />
           echo "Verifying submodule project file existence at expected path..."
-          ls -la Libs/BlazorMarkDownEditor/PSC.Blazor.Components.MarkdownEditor/*.csproj || (echo "ERROR: Submodule .csproj file not found!" && exit 1)
+          ls -la Libs/BlazorMarkdownEditor/PSC.Blazor.Components.MarkdownEditor/*.csproj || (echo "ERROR: Submodule .csproj file not found!" && exit 1)
             
       - name: Setup .NET
         uses: actions/setup-dotnet@v5.0.0
