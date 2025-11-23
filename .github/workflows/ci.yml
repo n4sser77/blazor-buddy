@@ -27,28 +27,31 @@ jobs:
           # 4. Make sure credentials persist for submodule operations
           persist-credentials: true
 
-      - name: Ensure submodules initialized and verify path
+      - name: Find and Export Submodule Project Path
+        id: submodule_path_step
         run: |
-          # 1. Force Git to synchronize and update the submodule contents
-          git submodule sync --recursive
-          git submodule update --init --recursive
+          # Use find -iname (case-insensitive) to locate the exact path of the .csproj file
+          # The path must start with the top-level directory (Libs/...)
+          PROJECT_PATH=$(find . -iname "PSC.Blazor.Components.MarkdownEditor.csproj" -path "*/Libs/BlazorMarkDownEditor/*" | head -n 1)
           
-          # 2. Verify that the submodule project file exists where the .csproj expects it
-          # This path comes from your BlazorBuddy.WebApp.csproj:
-          # <ProjectReference Include="..\Libs\BlazorMarkdownEditor\PSC.Blazor.Components.MarkdownEditor\PSC.Blazor.Components.MarkdownEditor.csproj" />
-          echo "Verifying submodule project file existence at expected path..."
-          ls -la Libs/BlazorMarkdownEditor/PSC.Blazor.Components.MarkdownEditor/*.csproj || (echo "ERROR: Submodule .csproj file not found!" && exit 1)
-            
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5.0.0
-        with:
-          dotnet-version: ${{ matrix.version }}
+          if [ -z "$PROJECT_PATH" ]; then
+            echo "::error::Submodule project not found. Check repository clone and case."
+            exit 1
+          fi
 
-      - name: Restore NuGet Packages
-        run: dotnet restore BlazorBuddy.slnx # Target the solution file directly
-      
+          echo "Found submodule project at: $PROJECT_PATH"
+          
+          # Export the found path as a variable for subsequent steps
+          echo "PROJECT_PATH=$PROJECT_PATH" >> $GITHUB_OUTPUT
+        
+      - name: Restore Submodule Packages Explicitly
+        run: dotnet restore ${{ steps.submodule_path_step.outputs.PROJECT_PATH }}
+
+      - name: Restore Main Solution
+        run: dotnet restore BlazorBuddy.slnx 
+        
       - name: Build Solution
-        run: dotnet build --no-restore # Add --no-restore since we just ran it
+        run: dotnet build --no-restore
 
       - name: Run Test 
         if: success()
