@@ -1,0 +1,3 @@
+[submodule "Libs/BlazorMarkDownEditor"]
+	path = Libs/BlazorMarkDownEditor
+	url = https://github.com/n4sser77/BlazorMarkdownEditor
