@@ -94,7 +94,7 @@ else
                 Id = NoteId,
                 Title = "New Note",
                 Content = "",
-                Owner = new UserProfile()
+                Owner = new UserProfile { Id = Guid.NewGuid() }
             };
             await NoteService.AddNoteDocumentAsync(CurrentNote);
         }
