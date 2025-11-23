@@ -26,6 +26,18 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           # 4. Make sure credentials persist for submodule operations
           persist-credentials: true
+
+      - name: Ensure submodules initialized and verify path
+        run: |
+          # 1. Force Git to synchronize and update the submodule contents
+          git submodule sync --recursive
+          git submodule update --init --recursive
+          
+          # 2. Verify that the submodule project file exists where the .csproj expects it
+          # This path comes from your BlazorBuddy.WebApp.csproj:
+          # <ProjectReference Include="..\Libs\BlazorMarkdownEditor\PSC.Blazor.Components.MarkdownEditor\PSC.Blazor.Components.MarkdownEditor.csproj" />
+          echo "Verifying submodule project file existence at expected path..."
+          ls -la Libs/BlazorMarkdownEditor/PSC.Blazor.Components.MarkdownEditor/*.csproj || (echo "ERROR: Submodule .csproj file not found!" && exit 1)
             
       - name: Setup .NET
         uses: actions/setup-dotnet@v5.0.0
