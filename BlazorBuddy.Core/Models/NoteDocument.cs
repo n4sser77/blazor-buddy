@@ -15,12 +15,5 @@ namespace BlazorBuddy.Models
         public bool IsVisible { get; set; } = false;
 
 
-        public NoteDocument()
-        {
-
-        }
-
-        
-
     }
 }

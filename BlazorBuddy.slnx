@@ -2,4 +2,5 @@
   <Project Path="BlazorBuddy.Core/BlazorBuddy.Core.csproj" />
   <Project Path="BlazorBuddy.Test/BlazorBuddy.Test.csproj" />
   <Project Path="BlazorBuddy.WebApp/BlazorBuddy.WebApp.csproj" />
+  <Project Path="Libs/BlazorMarkDownEditor/PSC.Blazor.Components.MarkdownEditor/PSC.Blazor.Components.MarkdownEditor.csproj" />
 </Solution>

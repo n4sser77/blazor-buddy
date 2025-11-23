@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-BlazorBuddy_WebApp-df50176a-28c5-4408-867d-f55443560058</UserSecretsId>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <StaticWebAssetBasePath>_content/PSC.Blazor.Components.MarkdownEditor</StaticWebAssetBasePath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0" />
-    <PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="8.0.8" />
+
+    <ProjectReference Include="..\Libs\BlazorMarkdownEditor\PSC.Blazor.Components.MarkdownEditor\PSC.Blazor.Components.MarkdownEditor.csproj" />
+
+
   </ItemGroup>
 
   <ItemGroup>
