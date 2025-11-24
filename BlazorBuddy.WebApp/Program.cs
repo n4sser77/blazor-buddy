@@ -1,6 +1,7 @@
 using BlazorBuddy.WebApp.Components;
 using BlazorBuddy.WebApp.Components.Account;
 using BlazorBuddy.WebApp.Data;
+using BlazorBuddy.WebApp.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddSingleton<FakeNoteRepo>();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
