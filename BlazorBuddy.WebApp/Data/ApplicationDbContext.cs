@@ -1,4 +1,5 @@
 using Azure;
+using BlazorBuddy.Core.Models;
 using BlazorBuddy.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -19,5 +20,7 @@ namespace BlazorBuddy.WebApp.Data
         public DbSet<Link> Links { get; set; }
         public DbSet<ChatGroup> ChatGroups { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<Canvas> Canvases { get; set; }
+        public DbSet<Image> Images { get; set; }
     }
 }
