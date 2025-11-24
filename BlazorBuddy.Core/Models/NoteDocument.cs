@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace BlazorBuddy.Models
 {
-    public class NoteDocument :
+    public class NoteDocument
     {
         public Guid Id { get; set; }
         public string Title { get; set; } = "";
