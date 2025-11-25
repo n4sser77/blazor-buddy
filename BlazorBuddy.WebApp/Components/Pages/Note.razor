@@ -4,8 +4,7 @@
 @using PSC.Blazor.Components.MarkdownEditor
 @using PSC.Blazor.Components.MarkdownEditor.Enums
 @using PSC.Blazor.Components.MarkdownEditor.EventsArgs
-@using PSC.Blazor.Components.MarkdownEditor.EventsArgs
-@inject FakeNoteRepo NoteService
+@* @inject FakeNoteRepo NoteService *@
 @* test note *@
 @* /notes/1e8f3d65-4b1f-4a6a-9c78-123456789abc *@
 @rendermode InteractiveServer
@@ -76,13 +75,13 @@ else
 
         if (CurrentNote != null)
         {
-            await NoteService.UpdateNoteDocumentAsync(CurrentNote);
+            // await NoteService.UpdateNoteDocumentAsync(CurrentNote);
         }
     }
 
     protected override async Task OnInitializedAsync()
     {
-        notes = await NoteService.GetAllNoteDocumentsAsync();
+        // notes = await NoteService.GetAllNoteDocumentsAsync();
 
         // Try to find note by Id
         CurrentNote = notes.FirstOrDefault(n => n.Id == NoteId);
@@ -95,9 +94,9 @@ else
                 Id = NoteId,
                 Title = "New Note",
                 Content = "",
-                Owner = new UserProfile ()
+                Owner = new UserProfile()
             };
-            await NoteService.AddNoteDocumentAsync(CurrentNote);
+            // await NoteService.AddNoteDocumentAsync(CurrentNote);
         }
     }
 
@@ -105,7 +104,7 @@ else
     {
         if (CurrentNote != null)
         {
-            await NoteService.UpdateNoteDocumentAsync(CurrentNote);
+            // await NoteService.UpdateNoteDocumentAsync(CurrentNote);
         }
     }
 

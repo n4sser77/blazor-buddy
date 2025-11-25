@@ -12,12 +12,27 @@ namespace BlazorBuddy.WebApp.Data
         {
         }
 
-       
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<ApplicationUser>()
+                .HasOne(a => a.UserProfile)
+                .WithOne()
+                .HasForeignKey<UserProfile>(p => p.Id);
+
+            builder.Entity<UserProfile>()
+                   .Property(p => p.Id)
+                   .ValueGeneratedNever();
+        }
+
+
         public DbSet<StudyPage> StudyPages { get; set; }
         public DbSet<NoteDocument> NoteDocuments { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Link> Links { get; set; }
         public DbSet<ChatGroup> ChatGroups { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<UserProfile> UserProfiles { get; set; }
     }
 }
