@@ -1,9 +1,115 @@
-﻿@page "/canvas"
+@page "/canvas"
 @rendermode InteractiveServer
+@inject IJSRuntime JS
 
 <PageTitle>Canvas</PageTitle>
 
-<h1>Canvas</h1>
+<div class="canvas-container">
+    <div class="canvas-controls">
+        <h1>Canvas - Rita här</h1>
 
-<p>Coming soon</p>
+        <div class="control-group">
+            <label>Pennfärg:</label>
+            <input type="color" @onchange="OnColorChanged" value="#000000" />
+        </div>
+        
+        <div class="control-group">
+            <label>Penntjocklek:</label>
+            <input type="range" min="1" max="20" value="2" @onchange="OnLineWidthChanged" />
+        </div>
+        
+        <div class="control-group">
+            <label>Verktyg:</label>
+            <select @onchange="OnToolChanged" class="form-control">
+                <option value="draw">Rita</option>
+                <option value="text">Text</option>
+            </select>
+        </div>
+        
+        @if (currentTool == "text")
+        {
+            <div class="control-group">
+                <label>Textstorlek:</label>
+                <input type="range" min="8" max="48" value="16" @onchange="OnFontSizeChanged" />
+            </div>
+        }
+        
+        <div class="control-group">
+            <button @onclick="ClearCanvas" class="btn btn-danger">Sudda</button>
+            <button @onclick="SaveDrawing" class="btn btn-primary">Spara ritning</button>
+        </div>
+    </div>
 
+    <canvas @ref="canvasRef" class="drawing-canvas"></canvas>
+</div>
+
+@code {
+    private ElementReference canvasRef;
+    private IJSObjectReference? module;
+    private string currentTool = "draw";
+    private int fontSize = 16;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/canvas.js");
+            await module.InvokeVoidAsync("initCanvas", canvasRef);
+        }
+    }
+
+    private async Task OnColorChanged(ChangeEventArgs e)
+    {
+        string color = e.Value?.ToString() ?? "#000000";
+        if (module != null)
+            await module.InvokeVoidAsync("setColor", color);
+    }
+
+    private async Task OnLineWidthChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int width))
+        {
+            if (module != null)
+                await module.InvokeVoidAsync("setLineWidth", width);
+        }
+    }
+
+    private async Task ClearCanvas()
+    {
+        if (module != null)
+            await module.InvokeVoidAsync("clearCanvas");
+    }
+    
+
+    private async Task SaveDrawing()
+    {
+        if (module != null)
+        {
+            var imageData = await module.InvokeAsync<string>("getCanvasImage");
+            // här kan man spara imageData till en server eller ladda ner det som en fil
+        }
+    }
+    
+    // Byt mellan ritverktyg och textverktyg
+    private async Task OnToolChanged(ChangeEventArgs e)
+    {
+        currentTool = e.Value?.ToString() ?? "draw";
+        if (module != null)
+        {
+            await module.InvokeVoidAsync("setMode", currentTool);
+        }
+    }
+    
+    // Ändra fontstorlek
+    private async Task OnFontSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int size))
+        {
+            fontSize = size;
+            if (module != null)
+            {
+                await module.InvokeVoidAsync("setFontSize", size);
+            }
+        }
+    }
+}
