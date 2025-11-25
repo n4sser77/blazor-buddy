@@ -1,0 +1,140 @@
+
+    .study-pages-container {
+        padding: 1rem;
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .search-section {
+        margin-bottom: 2rem;
+    }
+
+    .search-input {
+        max-width: 500px;
+        font-size: 1rem;
+        color: var(--text-main) !important;
+    }
+
+        .search-input::placeholder {
+            color: var(--text-subtitle) !important;
+            opacity: 0.7;
+        }
+
+    .study-pages-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+
+    @media (max-width: 1200px) {
+        .study-pages-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .study-pages-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .study-page-card {
+        background-color: var(--bg-component);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .study-page-card:hover {
+            background-color: var(--bg-highlight);
+            border-color: var(--brand-primary);
+            transform: translateY(-2px);
+        }
+
+        .study-page-card h3 {
+            color: var(--text-main);
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .study-page-card .description {
+            color: var(--text-subtitle);
+            margin-bottom: 1rem;
+            min-height: 3rem;
+        }
+
+        .study-page-card .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background-color: var(--bg-component);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+    }
+
+        .modal-content h2 {
+            color: var(--text-main);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            color: var(--text-subtitle);
+            margin-bottom: 0.5rem;
+        }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+    }
+
+    .btn-secondary {
+        background-color: var(--bg-highlight);
+        border: 1px solid var(--border-color);
+        color: var(--text-subtitle);
+    }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-component);
+            border-color: var(--text-muted);
+        }

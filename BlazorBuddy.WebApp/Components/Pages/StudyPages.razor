@@ -1,0 +1,162 @@
+﻿@page "/studypages"
+@rendermode InteractiveServer
+@using BlazorBuddy.Models
+@using BlazorBuddy.WebApp.Services
+@using BlazorBuddy.WebApp.Repositories.Interfaces
+@inject IStudyPageRepo StudyPageRepo
+@inject StudyPageStateService StateService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>Study Pages</PageTitle>
+
+<div class="study-pages-container">
+    <div class="header-section">
+        <h1>Study Pages</h1>
+        <button class="btn btn-primary" @onclick="ShowCreateDialog">+ Create New Study Page</button>
+    </div>
+
+    <div class="search-section">
+        <input class="form-control search-input" 
+               type="text" 
+               placeholder=" Filter study pages..." 
+               @bind="searchQuery" 
+               @bind:event="oninput" />
+    </div>
+
+    @if (isLoading)
+    {
+        <p class="text-muted">Loading your study pages...</p>
+    }
+    else if (filteredStudyPages.Count == 0)
+    {
+        <div class="empty-state">
+            @if (string.IsNullOrWhiteSpace(searchQuery))
+            {           
+                <p class="text-muted">You don't have any study pages yet. Create one to get started!</p>
+            }
+            else
+            {
+                <p class="text-muted">No study pages found matching "@searchQuery"</p>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="study-pages-grid">
+            @foreach (var studyPage in filteredStudyPages)
+            {
+                <div class="study-page-card" @onclick="() => NavigateToNotes(studyPage.Id)">
+                    <h3>@studyPage.Title</h3>
+                    <p class="description">@studyPage.Description</p>
+                    <div class="card-footer">
+                        <span class="notes-count">📝 @studyPage.Notes.Count notes</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (showCreateDialog)
+    {
+        <div class="modal-overlay" @onclick="HideCreateDialog">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <h2>Create New Study Page</h2>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input class="form-control" @bind="newTitle" placeholder="Enter study page title" />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="form-control" @bind="newDescription" placeholder="Enter description" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" @onclick="CreateStudyPage" disabled="@string.IsNullOrWhiteSpace(newTitle)">Create</button>
+                    <button class="btn btn-secondary" @onclick="HideCreateDialog">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+    private List<StudyPage> studyPages = new();
+    private bool isLoading = true;
+    private bool showCreateDialog = false;
+    private string newTitle = "";
+    private string newDescription = "";
+    private string currentUserId = "";
+    private string searchQuery = "";
+
+    private List<StudyPage> filteredStudyPages => 
+        string.IsNullOrWhiteSpace(searchQuery) 
+            ? studyPages 
+            : studyPages.Where(sp => 
+                sp.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) || 
+                sp.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Use a demo user ID for now (no auth required)
+        currentUserId = "demo-user";
+        
+        await LoadStudyPages();
+        isLoading = false;
+    }
+
+    private async Task LoadStudyPages()
+    {
+        // Check cache first
+        if (StateService.IsCacheValid())
+        {
+            studyPages = StateService.CachedStudyPages ?? new();
+        }
+        else
+        {
+            // Fetch from database and cache
+            studyPages = await StudyPageRepo.GetUserStudyPagesAsync(currentUserId);
+            StateService.SetStudyPages(studyPages);
+        }
+    }
+
+    private void ShowCreateDialog()
+    {
+        showCreateDialog = true;
+        newTitle = "";
+        newDescription = "";
+    }
+
+    private void HideCreateDialog()
+    {
+        showCreateDialog = false;
+    }
+
+    private async Task CreateStudyPage()
+    {
+        if (string.IsNullOrWhiteSpace(newTitle))
+            return;
+
+        // Create a demo user profile for now
+        var demoUser = new UserProfile
+        {
+            Id = currentUserId,
+            Username = "Demo User",
+            DisplayName = "Demo User"
+        };
+
+        await StudyPageRepo.CreateStudyPageAsync(newTitle, newDescription, demoUser);
+        
+        // Invalidate cache when creating new study page
+        StateService.InvalidateCache();
+        
+        await LoadStudyPages();
+        HideCreateDialog();
+    }
+
+    private void NavigateToNotes(Guid studyPageId)
+    {
+        NavigationManager.NavigateTo($"/studypages/{studyPageId}/notes");
+    }
+}
