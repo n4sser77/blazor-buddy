@@ -1,14 +1,15 @@
 ﻿using BlazorBuddy.Models;
 using BlazorBuddy.WebApp.Data;
+using BlazorBuddy.WebApp.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace BlazorBuddy.WebApp.Services
+namespace BlazorBuddy.WebApp.Repositories
 {
-    public class NotesPageService : INotesPageService
+    public class NoteRepo : INoteRepo
     {
         private readonly ApplicationDbContext _context;
 
-        public NotesPageService(ApplicationDbContext context)
+        public NoteRepo(ApplicationDbContext context)
         {
             _context = context;
         }

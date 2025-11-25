@@ -4,7 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazorBuddy.WebApp.Services
 {
-    public class StudyPageService : IStudyPageService
+
+    // Glöm inte flytta den filen till Repositories
+    // och döpa om den till StudyPageRepo
+    public class StudyPageService  // Ärv från IStudyPageRepo
     {
         private readonly ApplicationDbContext _context;
 
