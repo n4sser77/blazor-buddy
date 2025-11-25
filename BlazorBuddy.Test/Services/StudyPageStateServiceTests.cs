@@ -17,5 +17,5 @@ public class StudyPageStateServiceTests
         // Then
         Assert.False(result);
 
-    }
+    }   
 }
