@@ -1,3 +1,4 @@
+using BlazorBuddy.Core.Models;
 using System;
 using System.Collections.Generic;
 
@@ -12,6 +13,8 @@ namespace BlazorBuddy.Models
         public List<UserProfile> Users { get; set; } = [];
         public List<Tag> Tags { get; set; } = [];
         public List<Link> Links { get; set; } = [];
+        public List<Image> Images { get; set; } = [];
+        public List<Canvas> Canvases { get; set; } = [];
         public bool IsVisible { get; set; } = false;
 
 

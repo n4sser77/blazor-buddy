@@ -41,6 +41,8 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddScoped<INoteRepo, NoteRepo>();
 builder.Services.AddScoped<IStudyPageRepo, StudyPageRepo>();
 builder.Services.AddSingleton<BlazorBuddy.WebApp.Services.StudyPageStateService>(); // Singleton to persist across navigations
+builder.Services.AddScoped<IImageRepo, ImageRepo>();
+builder.Services.AddScoped<ICanvasRepo, CanvasRepo>();
 
 var app = builder.Build();
 
