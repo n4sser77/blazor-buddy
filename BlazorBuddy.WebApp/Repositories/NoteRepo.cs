@@ -71,7 +71,9 @@ namespace BlazorBuddy.WebApp.Repositories
 
         public async Task<bool> DeleteNoteAsync(Guid noteId, string userId)
         {
-            var note = await _context.NoteDocuments.FindAsync(noteId);
+            var note = await _context.NoteDocuments
+                .Include(n => n.Owner)
+                .FirstOrDefaultAsync(n => n.Id == noteId);
             if (note == null || note.Owner.Id != userId)
                 return false;
 
