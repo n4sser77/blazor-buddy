@@ -12,11 +12,5 @@ namespace BlazorBuddy.Models
         public List<UserProfile> Users { get; set; } = [];
         public required UserProfile Owner { get; set; }
 
-
-        public StudyPage()
-        {
-
-        }
-
     }
 }
