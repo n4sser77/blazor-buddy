@@ -1,14 +1,16 @@
 ﻿using BlazorBuddy.Models;
 using BlazorBuddy.WebApp.Data;
+using BlazorBuddy.WebApp.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace BlazorBuddy.WebApp.Services
+namespace BlazorBuddy.WebApp.Repositories
 {
-    public class StudyPageService
+
+    public class StudyPageRepo : IStudyPageRepo
     {
         private readonly ApplicationDbContext _context;
 
-        public StudyPageService(ApplicationDbContext context)
+        public StudyPageRepo(ApplicationDbContext context)
         {
             _context = context;
         }

@@ -1,7 +1,8 @@
 using BlazorBuddy.WebApp.Components;
 using BlazorBuddy.WebApp.Components.Account;
 using BlazorBuddy.WebApp.Data;
-using BlazorBuddy.WebApp.Services;
+using BlazorBuddy.WebApp.Repositories;
+using BlazorBuddy.WebApp.Repositories.Interfaces;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddSingleton<FakeNoteRepo>();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -39,6 +39,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<INoteRepo, NoteRepo>();
+builder.Services.AddScoped<IStudyPageRepo, StudyPageRepo>();
 
 var app = builder.Build();
 
