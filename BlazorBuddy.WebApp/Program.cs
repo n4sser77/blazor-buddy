@@ -40,10 +40,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<INoteRepo, NoteRepo>();
 builder.Services.AddScoped<IStudyPageRepo, StudyPageRepo>();
-
-// Add application services
-builder.Services.AddScoped<StudyPageService>();
-builder.Services.AddSingleton<StudyPageStateService>(); // Singleton to persist across navigations
+builder.Services.AddSingleton<BlazorBuddy.WebApp.Services.StudyPageStateService>(); // Singleton to persist across navigations
 
 var app = builder.Build();
 

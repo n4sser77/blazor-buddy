@@ -2,7 +2,8 @@
 @rendermode InteractiveServer
 @using BlazorBuddy.Models
 @using BlazorBuddy.WebApp.Services
-@inject StudyPageService StudyPageService
+@using BlazorBuddy.WebApp.Repositories.Interfaces
+@inject IStudyPageRepo StudyPageRepo
 @inject StudyPageStateService StateService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
@@ -256,7 +257,7 @@
         else
         {
             // Fetch from database and cache
-            studyPages = await StudyPageService.GetUserStudyPagesAsync(currentUserId);
+            studyPages = await StudyPageRepo.GetUserStudyPagesAsync(currentUserId);
             StateService.SetStudyPages(studyPages);
         }
     }
@@ -286,7 +287,7 @@
             DisplayName = "Demo User"
         };
 
-        await StudyPageService.CreateStudyPageAsync(newTitle, newDescription, demoUser);
+        await StudyPageRepo.CreateStudyPageAsync(newTitle, newDescription, demoUser);
         
         // Invalidate cache when creating new study page
         StateService.InvalidateCache();
