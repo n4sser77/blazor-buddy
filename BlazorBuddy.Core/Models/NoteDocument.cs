@@ -14,6 +14,7 @@ namespace BlazorBuddy.Models
         public List<Tag> Tags { get; set; } = [];
         public List<Link> Links { get; set; } = [];
         public List<Image> Images { get; set; } = [];
+        public List<Canvas> Canvases { get; set; } = [];
         public bool IsVisible { get; set; } = false;
 
 

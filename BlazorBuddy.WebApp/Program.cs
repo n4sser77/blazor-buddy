@@ -41,6 +41,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<INoteRepo, NoteRepo>();
 builder.Services.AddScoped<IStudyPageRepo, StudyPageRepo>();
+builder.Services.AddScoped<IImageRepo, ImageRepo>();
+builder.Services.AddScoped<ICanvasRepo, CanvasRepo>();
 
 var app = builder.Build();
 
