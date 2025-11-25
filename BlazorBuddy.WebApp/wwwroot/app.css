@@ -124,3 +124,35 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+
+
+.editor-container {
+    position: relative; /* needed so the button can be absolutely positioned relative to the editor */
+    
+}
+
+.toggle-btn {
+    position: absolute;
+    top: 8px; /* distance from top of editor */
+    right: 8px; /* distance from right of editor */
+    z-index: 999; /* ensure it sits on top */
+    
+    padding: 6px 12px; /* slightly smaller and comfy */
+    border: 1px solid var(--text-subtitle); /* proper border format */
+    border-radius: 8px; /* smooth corners */
+    
+    background-color: var(--bg-component);
+    color: var(--text-main);
+    
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.toggle-btn:hover {
+    background-color: var(--bg-highlight); /* optional hover effect */
+    color: var(--text-accent);
+}

@@ -15,17 +15,30 @@ jobs:
         version: [10.0]
 
     steps:
-      - name: Checkout code
+      - name: Checkout code (with fixed submodule case)
         uses: actions/checkout@v5
-
+        with:
+          # 1. Fetch full history for correct submodule commit resolution
+          fetch-depth: 0 
+          # 2. Correctly initialize and update all submodules (path casing now fixed in Git)
+          submodules: 'recursive'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+            
       - name: Setup .NET
         uses: actions/setup-dotnet@v5.0.0
         with:
           dotnet-version: ${{ matrix.version }}
 
+      # ➡️ CRITICAL STEP: Restore All Projects via Solution File
+      # This ensures all projects, including the submodule, are restored 
+      # and generate the necessary project.assets.json files.
+      - name: Restore Solution NuGet Packages
+        run: dotnet restore BlazorBuddy.slnx
+        
       - name: Build Solution
-        run: dotnet build
-
+        # Run the build, skipping restore since we just ran it explicitly.
+        run: dotnet build --no-restore
       - name: Run Test 
         if: success()
         run: dotnet test
