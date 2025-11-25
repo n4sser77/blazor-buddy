@@ -45,7 +45,6 @@ function handleMouseDown(e) {
     }
 }
 
-// Visa textinput på canvas
 function showTextInput(x, y) {
     if (textInputElement) {
         textInputElement.remove();
@@ -66,13 +65,11 @@ function showTextInput(x, y) {
     textInputElement.style.minWidth = '150px';
     
     document.body.appendChild(textInputElement);
-    
-    // Fokusera och välj texten
+
     setTimeout(() => {
         textInputElement.focus();
     }, 10);
     
-    // Flagga för att vi är i textmode
     window.isTextInputActive = true;
     
 
@@ -103,15 +100,12 @@ function showTextInput(x, y) {
     textInputElement.addEventListener('blur', handleBlur);
 }
 
-// Rensa textinput
 function cleanupTextInput() {
     if (textInputElement) {
         textInputElement.remove();
         textInputElement = null;
     }
     window.isTextInputActive = false;
-    currentMode = 'draw';
-    canvas.style.cursor = 'crosshair';
 }
 
 function startDrawing(e) {
