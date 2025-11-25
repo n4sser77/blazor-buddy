@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazorBuddy.WebApp.Services
 {
-    public class NotesPageService
+    public class NotesPageService : INotesPageService
     {
         private readonly ApplicationDbContext _context;
 

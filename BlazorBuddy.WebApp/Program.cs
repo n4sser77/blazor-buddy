@@ -1,6 +1,7 @@
 using BlazorBuddy.WebApp.Components;
 using BlazorBuddy.WebApp.Components.Account;
 using BlazorBuddy.WebApp.Data;
+using BlazorBuddy.WebApp.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<INotesPageService, NotesPageService>();
+builder.Services.AddScoped<IStudyPageService, StudyPageService>();
 
 var app = builder.Build();
 
