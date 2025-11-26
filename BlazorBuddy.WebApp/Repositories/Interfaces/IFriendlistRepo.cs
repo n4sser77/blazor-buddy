@@ -1,6 +1,6 @@
 ﻿namespace BlazorBuddy.WebApp.Repositories.Interfaces
 {
-    public interface IFriendlist
+    public interface IFriendlistRepo
     {
         Task<bool> AddFriendAsync(string userId, string friendId);
         Task<bool> RemoveFriendAsync(string userId, string friendId);
