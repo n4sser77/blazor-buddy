@@ -6,7 +6,7 @@ using BlazorBuddy.Core.Models;
 
 namespace BlazorBuddy.WebApp.Repositories
 {
-    public class FriendListRepo : IFriendlist
+    public class FriendListRepo : IFriendlistRepo
     {
         private readonly ApplicationDbContext _context;
 
