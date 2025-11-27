@@ -17,14 +17,6 @@ namespace BlazorBuddy.WebApp.Repositories
 
         public async Task<bool> AddFriendAsync(string userId, string friendId)
         {
-            var addFriend = await _context.FriendLists
-             .FirstOrDefaultAsync(fl =>
-                (fl.UserId == userId && fl.FriendId == friendId) ||
-                (fl.UserId == friendId && fl.FriendId == userId));
-
-            if (addFriend != null)
-                return false;
-
             var newFriend = new FriendList
             {
                 UserId = userId,
@@ -75,46 +67,6 @@ namespace BlazorBuddy.WebApp.Repositories
         }
         public async Task<bool> SendFriendRequestAsync(string userId, string friendId)
         {
-
-            if (userId == friendId)
-                return false;
-
-            var isBlocked = await _context.FriendLists
-                .AsNoTracking()
-                .AnyAsync(fl =>
-                    ((fl.UserId == userId && fl.FriendId == friendId) ||
-                     (fl.UserId == friendId && fl.FriendId == userId)) &&
-                    fl.Status == FriendStatus.Blocked);
-            if (isBlocked)
-                return false;
-
-            var alreadyFriends = await _context.FriendLists
-                .AsNoTracking()
-                .AnyAsync(fl =>
-                    ((fl.UserId == userId && fl.FriendId == friendId) ||
-                     (fl.UserId == friendId && fl.FriendId == userId)) &&
-                    fl.Status == FriendStatus.Accepted);
-            if (alreadyFriends)
-                return false;
-
-            var pendingSameDirection = await _context.FriendLists
-                .AsNoTracking()
-                .AnyAsync(fl =>
-                    fl.UserId == userId &&
-                    fl.FriendId == friendId &&
-                    fl.Status == FriendStatus.Pending);
-            if (pendingSameDirection)
-                return false;
-
-            var pendingReverse = await _context.FriendLists
-                .AsNoTracking()
-                .AnyAsync(fl =>
-                    fl.UserId == friendId &&
-                    fl.FriendId == userId &&
-                    fl.Status == FriendStatus.Pending);
-            if (pendingReverse)
-                return false;
-
             var request = new FriendList
             {
                 UserId = userId,

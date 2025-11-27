@@ -21,9 +21,6 @@ namespace BlazorBuddy.WebApp.Repositories
                 .Include(n => n.Canvases)
                 .FirstOrDefaultAsync(n => n.Id == noteId);
 
-            if (note == null)
-                throw new Exception("Note not found");
-
             var canvas = new Canvas()
             {
                 Title = name,
@@ -90,11 +87,8 @@ namespace BlazorBuddy.WebApp.Repositories
             if (canvas == null)
                 return false;
 
-            if (!canvas.Users.Any(u => u.Id == user.Id))
-            {
-                canvas.Users.Add(user);
-                await _context.SaveChangesAsync();
-            }
+            canvas.Users.Add(user);
+            await _context.SaveChangesAsync();
 
             return true;
         }
