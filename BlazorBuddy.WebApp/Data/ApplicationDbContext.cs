@@ -25,6 +25,11 @@ namespace BlazorBuddy.WebApp.Data
             builder.Entity<UserProfile>()
                    .Property(p => p.Id)
                    .ValueGeneratedNever();
+
+            builder.Entity<StudyPage>()
+                .HasOne(s => s.Owner)
+                .WithMany(s => s.StudyPages);
+                
         }
 
 

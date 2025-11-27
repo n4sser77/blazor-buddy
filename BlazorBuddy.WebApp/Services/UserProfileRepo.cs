@@ -25,11 +25,21 @@ namespace BlazorBuddy.WebApp.Services
             return userProfile;
         }
 
-        public async Task<UserProfile?> UpdateUserProfile(UserProfile user)
+        public async Task<UserProfile?> UpdateUserProfile(UserProfile updatedUser)
         {
-            var currentUser = await _ctx.UserProfiles.FirstOrDefaultAsync(u => user.Id == u.Id);
-
+            var currentUser = await _ctx.UserProfiles.FirstOrDefaultAsync(u => updatedUser.Id == u.Id);
+            if (currentUser is null)
+            {
+                return null;
+            }
+            currentUser.ChatGroups = updatedUser.ChatGroups;
+            currentUser.DisplayName = updatedUser.DisplayName;
+            currentUser.ProfilePicture = updatedUser.ProfilePicture;
+            currentUser.StudyPages = updatedUser.StudyPages;
+            currentUser.Username = updatedUser.Username;
+            await _ctx.SaveChangesAsync();
             return currentUser;
         }
+
     }
 }

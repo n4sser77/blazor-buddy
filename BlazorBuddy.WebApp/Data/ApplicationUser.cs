@@ -7,7 +7,9 @@ namespace BlazorBuddy.WebApp.Data
     public class ApplicationUser : IdentityUser
     {
         // Navigation property to the profile
-        public virtual UserProfile? UserProfile { get; set; }
+        public virtual UserProfile UserProfile { get; set; } = new();
+
+
 
     }
 }
