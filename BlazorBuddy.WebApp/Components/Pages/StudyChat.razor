@@ -24,7 +24,7 @@
     <div class="chat-sidebar">
         <div class="sidebar-header">
             <h3>Active Groups</h3>
-            <button class="btn-icon" @onclick="() => CreateGroupDrawer?.Open()" title="New Group">+</button>
+            <button class="btn-icon" @onclick="() => OpenChatGroupDrawer()" title="New Group">+</button>
         </div>
 
         <div class="group-list">
@@ -227,7 +227,7 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        
+
 
 
         if (user.Identity?.IsAuthenticated == true)
@@ -240,13 +240,24 @@
 
         if (CurrentUserId is null) return;
         CurrentUserProfile = await UserRepo.GetUserById(CurrentUserId);
-        if(CurrentUserProfile is null)
-            
-        AllUsers = await UserRepo.GetAllUsers();
+        if (CurrentUserProfile is null)
+
+            AllUsers = await UserRepo.GetAllUsers();
         AllUsers = AllUsers.Where(u => u.Id != CurrentUserId).ToList();
 
 
         ActiveGroups = await ChatRepo.GetChatGroupsByUserId(CurrentUserId);
+    }
+    private async Task OpenChatGroupDrawer()
+    {
+        await UpdateFriendsList();
+        CreateGroupDrawer?.Open();
+    }
+    private async Task UpdateFriendsList()
+    {
+        AllUsers = await UserRepo.GetAllUsers();
+        AllUsers = AllUsers.Where(u => u.Id != CurrentUserProfile?.Id).ToList();
+
     }
 
     private async Task AddUserToCurrentGroup()
@@ -304,8 +315,9 @@
         });
     }
 
-    private void SelectGroup(ChatGroup group)
+    private async Task SelectGroup(ChatGroup group)
     {
+        await OpenChatGroupDrawer();
         SelectedGroup = group;
         ScrollToBottom();
     }
