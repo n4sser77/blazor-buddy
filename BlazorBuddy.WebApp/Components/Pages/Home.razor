@@ -1,7 +1,19 @@
 ﻿@page "/"
+@using BlazorBuddy.WebApp.Components.Modules
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize]
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Welcome</h1>
 
-Welcome to your new app.
+<AuthorizeView>
+    <Authorized>
+        <p>Hello @context.User.Identity?.Name!</p>
+        <ProfileRegistration />
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized. Please <a href="Identity/Account/Login">log in</a>.</p>
+    </NotAuthorized>
+</AuthorizeView>
