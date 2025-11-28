@@ -1,8 +1,11 @@
+using BlazorBuddy.Core.Interfaces;
 using BlazorBuddy.WebApp.Components;
 using BlazorBuddy.WebApp.Components.Account;
 using BlazorBuddy.WebApp.Data;
 using BlazorBuddy.WebApp.Repositories;
 using BlazorBuddy.WebApp.Repositories.Interfaces;
+using BlazorBuddy.WebApp.Services;
+using BlazorBuddy.WebApp.Services.Interfaces;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,9 +28,15 @@ builder.Services.AddAuthentication(options =>
     .AddIdentityCookies();
 
 // Use in-memory database for development
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseInMemoryDatabase("BlazorBuddyInMemory"));
+//builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("BlazorBuddyInMemory"));
+    options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
@@ -40,9 +49,14 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<INoteRepo, NoteRepo>();
 builder.Services.AddScoped<IStudyPageRepo, StudyPageRepo>();
-builder.Services.AddSingleton<BlazorBuddy.WebApp.Services.StudyPageStateService>(); // Singleton to persist across navigations
+builder.Services.AddSingleton<StudyPageStateService>();
 builder.Services.AddScoped<IImageRepo, ImageRepo>();
 builder.Services.AddScoped<ICanvasRepo, CanvasRepo>();
+builder.Services.AddScoped<IUserRepo, UserProfileRepo>();
+builder.Services.AddScoped<IChatRepo, ChatRepo>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddSingleton<IChatEventBroker, ChatEventBroker>();
+
 
 var app = builder.Build();
 

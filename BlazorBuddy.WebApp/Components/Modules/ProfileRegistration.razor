@@ -1,0 +1,75 @@
+﻿@using BlazorBuddy.Models
+@using BlazorBuddy.WebApp.Data
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+<h3>Register your profile</h3>
+
+@if (isRegistered)
+{
+    <p>Your profile is registered with display name: @displayName</p>
+    <input @onchange="SaveProfile" />
+
+
+}
+else
+{
+    <p>No profile yet. Enter a display name:</p>
+    <input @onchange="SaveProfile" />
+}
+
+@code {
+    private bool isRegistered;
+    private string? displayName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId is null) return;
+
+            var appUser = await UserManager.FindByIdAsync(userId);
+
+            if (appUser?.UserProfile != null)
+            {
+                isRegistered = true;
+                displayName = appUser.UserProfile.DisplayName;
+            }
+        }
+    }
+
+    private async Task SaveProfile(ChangeEventArgs e)
+    {
+        var newName = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(newName)) return;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId is null) return;
+
+        var appUser = await UserManager.FindByIdAsync(userId);
+
+        if (appUser != null)
+        {
+            if (appUser.UserProfile == null)
+            {
+                appUser.UserProfile = new UserProfile { Id = appUser.Id };
+                DbContext.UserProfiles.Add(appUser.UserProfile);
+            }
+
+            appUser.UserProfile.DisplayName = newName;
+            await DbContext.SaveChangesAsync();
+
+            isRegistered = true;
+            displayName = newName;
+        }
+    }
+}
