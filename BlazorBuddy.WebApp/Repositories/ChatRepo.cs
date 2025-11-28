@@ -38,13 +38,62 @@ public class ChatRepo : IChatRepo
 
     public async Task<ChatGroup?> UpdateChatGroup(ChatGroup newChatGroup)
     {
-        var chat = await _ctx.ChatGroups.FirstOrDefaultAsync(c => c.Id == newChatGroup.Id);
+        var chat = await _ctx.ChatGroups
+            .Include(c => c.Users)
+            .Include(c => c.Messages)
+            .FirstOrDefaultAsync(c => c.Id == newChatGroup.Id);
         if (chat is null)
         {
             return null;
         }
-        chat.Messages = newChatGroup.Messages;
-        chat.Users = newChatGroup.Users;
+
+        // Update Users
+        // Remove users not in newChatGroup
+        var usersToRemove = chat.Users.Where(u => !newChatGroup.Users.Any(nu => nu.Id == u.Id)).ToList();
+        foreach (var user in usersToRemove)
+        {
+            chat.Users.Remove(user);
+        }
+        // Add new users
+        var usersToAdd = newChatGroup.Users.Where(nu => !chat.Users.Any(u => u.Id == nu.Id)).ToList();
+        foreach (var user in usersToAdd)
+        {
+            // Attach user if not tracked
+            if (_ctx.Entry(user).State == EntityState.Detached)
+            {
+                _ctx.UserProfiles.Attach(user);
+            }
+            chat.Users.Add(user);
+        }
+
+        // Update Messages
+        // Remove messages not in newChatGroup
+        var messagesToRemove = chat.Messages.Where(m => !newChatGroup.Messages.Any(nm => nm.Id == m.Id)).ToList();
+        foreach (var msg in messagesToRemove)
+        {
+            chat.Messages.Remove(msg);
+            _ctx.Messages.Remove(msg); // If you want to delete from DB
+        }
+        // Add new messages
+        var messagesToAdd = newChatGroup.Messages.Where(nm => !chat.Messages.Any(m => m.Id == nm.Id)).ToList();
+        foreach (var msg in messagesToAdd)
+        {
+            chat.Messages.Add(msg);
+        }
+        // Update existing messages (if needed)
+        foreach (var msg in chat.Messages)
+        {
+            var newMsg = newChatGroup.Messages.FirstOrDefault(nm => nm.Id == msg.Id);
+            if (newMsg != null)
+            {
+                msg.Content = newMsg.Content;
+                msg.Timestamp = newMsg.Timestamp;
+                msg.FromUserId = newMsg.FromUserId;
+                // Add other properties as needed
+            }
+        }
+
+        // Update Title
         chat.Title = newChatGroup.Title;
 
         await _ctx.SaveChangesAsync();
