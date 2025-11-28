@@ -11,27 +11,24 @@ namespace BlazorBuddy.Test.Integration
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+
+            builder.UseEnvironment("IntegrationTest");
+
             builder.ConfigureServices(services =>
             {
-                
+
                 services.RemoveAll(typeof(DbContextOptions<ApplicationDbContext>));
                 services.RemoveAll(typeof(ApplicationDbContext));
 
+
                 services.AddDbContext<ApplicationDbContext>(options =>
-                {
-                    options.UseInMemoryDatabase("TestDatabase_" + Guid.NewGuid().ToString());
-                });
+                    options.UseInMemoryDatabase("TestDatabase_" + Guid.NewGuid()));
 
-                var serviceprovider = services.BuildServiceProvider();
 
-                using (var scope = serviceprovider.CreateScope())
-                {
-                    var scopedServices = scope.ServiceProvider;
-                    var db = scopedServices.GetRequiredService<ApplicationDbContext>();
-                    db.Database.EnsureCreated();
-
-                    
-                }
+                var sp = services.BuildServiceProvider();
+                using var scope = sp.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Database.EnsureCreated();
             });
         }
     }
