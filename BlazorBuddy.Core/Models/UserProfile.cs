@@ -12,17 +12,11 @@ namespace BlazorBuddy.Models
 
         public List<ChatGroup> ChatGroups { get; set; } = [];
 
-        public List<FriendList> Friends { get; set; } = [];
-
         public UserProfile()
         {
 
         }
 
-        public UserProfile(string id)
-        {
-            Id = id;
-        }
 
 
     }
