@@ -1,0 +1,180 @@
+@page "/studypages/{StudyPageId:guid}/notes"
+@rendermode InteractiveServer
+@using BlazorBuddy.Models
+@using BlazorBuddy.WebApp.Repositories.Interfaces
+@inject IStudyPageRepo StudyPageRepo
+@inject INoteRepo NoteRepo
+@inject NavigationManager NavigationManager
+
+<PageTitle>@studyPageTitle - Notes</PageTitle>
+
+<div class="notes-list-container">
+    <div class="back-button-section">
+        <button class="btn-back" @onclick="GoBackToStudyPages">← Back to Study Pages</button>
+    </div>
+    
+    <div class="header-section">
+        <div>
+            <h1>@studyPageTitle</h1>
+            <p class="subtitle">@studyPageDescription</p>
+        </div>
+        <button class="btn btn-primary" @onclick="ShowCreateDialog">+ Create New Note</button>
+    </div>
+
+    <div class="search-section">
+        <input class="form-control search-input" 
+               type="text" 
+               placeholder=" Filter notes..." 
+               @bind="searchQuery" 
+               @bind:event="oninput" />
+    </div>
+
+    @if (isLoading)
+    {
+        <p class="text-muted">Loading notes...</p>
+    }
+    else if (filteredNotes.Count == 0)
+    {
+        <div class="empty-state">
+            @if (string.IsNullOrWhiteSpace(searchQuery))
+            {
+                <p class="text-muted">No notes yet. Create your first note to get started!</p>
+            }
+            else
+            {
+                <p class="text-muted">No notes found matching "@searchQuery"</p>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="notes-grid">
+            @foreach (var note in filteredNotes)
+            {
+                <div class="note-card" @onclick="() => NavigateToNote(note.Id)">
+                    <h3>@note.Title</h3>
+                    <p class="content-preview">@GetContentPreview(note.Content)</p>
+                    <div class="card-footer">
+                        <span class="meta-info">🔗 @note.Links.Count links</span>
+                        <span class="meta-info">🏷️ @note.Tags.Count tags</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (showCreateDialog)
+    {
+        <div class="modal-overlay" @onclick="HideCreateDialog">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <h2>Create New Note</h2>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input class="form-control" @bind="newTitle" placeholder="Enter note title" />
+                </div>
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea class="form-control" @bind="newContent" placeholder="Enter note content" rows="5"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" @onclick="CreateNote" disabled="@string.IsNullOrWhiteSpace(newTitle)">Create</button>
+                    <button class="btn btn-secondary" @onclick="HideCreateDialog">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public Guid StudyPageId { get; set; }
+
+    private List<NoteDocument> notes = new();
+    private string studyPageTitle = "";
+    private string studyPageDescription = "";
+    private bool isLoading = true;
+    private bool showCreateDialog = false;
+    private string newTitle = "";
+    private string newContent = "";
+    private string searchQuery = "";
+
+    private List<NoteDocument> filteredNotes =>
+        string.IsNullOrWhiteSpace(searchQuery)
+            ? notes
+            : notes.Where(n =>
+                n.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                n.Content.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStudyPageInfo();
+        await LoadNotes();
+        isLoading = false;
+    }
+
+    private async Task LoadStudyPageInfo()
+    {
+        var studyPage = await StudyPageRepo.GetStudyPageByIdAsync(StudyPageId);
+        if (studyPage != null)
+        {
+            studyPageTitle = studyPage.Title;
+            studyPageDescription = studyPage.Description;
+        }
+    }
+
+    private async Task LoadNotes()
+    {
+        notes = await NoteRepo.GetNotesForStudyPageAsync(StudyPageId);
+    }
+
+    private void ShowCreateDialog()
+    {
+        showCreateDialog = true;
+        newTitle = "";
+        newContent = "";
+    }
+
+    private void HideCreateDialog()
+    {
+        showCreateDialog = false;
+    }
+
+    private async Task CreateNote()
+    {
+        if (string.IsNullOrWhiteSpace(newTitle))
+            return;
+
+        var demoUser = new UserProfile
+        {
+            Id = "demo-user",
+            Username = "Demo User",
+            DisplayName = "Demo User"
+        };
+
+        await NoteRepo.CreateNoteAsync(newTitle, newContent, demoUser, StudyPageId);
+        await LoadNotes();
+        HideCreateDialog();
+    }
+
+    private void NavigateToNote(Guid noteId)
+    {
+        NavigationManager.NavigateTo($"/studypages/{StudyPageId}/notes/{noteId}");
+    }
+
+    private string GetContentPreview(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return "No content yet...";
+
+        return content.Length > 150
+            ? content.Substring(0, 150) + "..."
+            : content;
+    }
+
+    private void GoBackToStudyPages()
+    {
+        NavigationManager.NavigateTo("/studypages");
+    }
+}

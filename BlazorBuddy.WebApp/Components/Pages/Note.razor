@@ -1,24 +1,32 @@
-﻿@page "/notes/{NoteId:guid}"
+﻿@page "/studypages/{StudyPageId:guid}/notes/{NoteId:guid}"
 @using BlazorBuddy.Models
-@using BlazorBuddy.WebApp.Services
+@using BlazorBuddy.WebApp.Repositories.Interfaces
 @using PSC.Blazor.Components.MarkdownEditor
 @using PSC.Blazor.Components.MarkdownEditor.Enums
 @using PSC.Blazor.Components.MarkdownEditor.EventsArgs
-@using PSC.Blazor.Components.MarkdownEditor.EventsArgs
-@inject FakeNoteRepo NoteService
-@* test note *@
-@* /notes/1e8f3d65-4b1f-4a6a-9c78-123456789abc *@
+@inject INoteRepo NoteRepo
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 
 
 @if (CurrentNote != null)
 {
-    <div class="editor-container">
-        <button class="toggle-btn" @onclick="ToggleView">
-            @(ShowPreview ? "✏️ Edit" : "👁️ Preview")
+    <div class="note-editor-container">
+        <div class="header-actions">
+            <button class="btn-back" @onclick="GoBack">← Back to Notes</button>
+            <button class="toggle-btn" @onclick="ToggleView">
+                @(ShowPreview ? "✏️ Edit" : "👁️ Preview")
+            </button>
+        </div>
 
-        </button>
+        <div class="title-section">
+            <input class="note-title-input" 
+                   type="text" 
+                   @bind="CurrentNote.Title" 
+                   @bind:event="oninput"
+                   placeholder="Note title..." />
+        </div>
 
         @if (!ShowPreview)
         {
@@ -61,43 +69,33 @@ else
     <p>Loading note...</p>
 }
 
+
+
 @code {
+    [Parameter]
+    public Guid StudyPageId { get; set; }
+
     [Parameter]
     public Guid NoteId { get; set; }
 
     private NoteDocument? CurrentNote;
-    private List<NoteDocument> notes = [];
     private string markdownHtml = "";
     private bool ShowPreview = false;
 
     private async Task ToggleView()
     {
         ShowPreview = !ShowPreview;
-
-        if (CurrentNote != null)
-        {
-            await NoteService.UpdateNoteDocumentAsync(CurrentNote);
-        }
+        await SaveNote();
     }
 
     protected override async Task OnInitializedAsync()
     {
-        notes = await NoteService.GetAllNoteDocumentsAsync();
+        CurrentNote = await NoteRepo.GetNoteByIdAsync(NoteId);
 
-        // Try to find note by Id
-        CurrentNote = notes.FirstOrDefault(n => n.Id == NoteId);
-
-        // If note doesn't exist yet, create a fake one for testing
         if (CurrentNote == null)
         {
-            CurrentNote = new NoteDocument
-            {
-                Id = NoteId,
-                Title = "New Note",
-                Content = "",
-                Owner = new UserProfile ()
-            };
-            await NoteService.AddNoteDocumentAsync(CurrentNote);
+            // Note not found, redirect back to notes list
+            NavigationManager.NavigateTo($"/studypages/{StudyPageId}/notes");
         }
     }
 
@@ -105,7 +103,7 @@ else
     {
         if (CurrentNote != null)
         {
-            await NoteService.UpdateNoteDocumentAsync(CurrentNote);
+            await NoteRepo.UpdateNoteAsync(NoteId, CurrentNote.Title, CurrentNote.Content);
         }
     }
 
@@ -113,5 +111,10 @@ else
     {
         markdownHtml = value;
         return Task.CompletedTask;
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo($"/studypages/{StudyPageId}/notes");
     }
 }

@@ -39,14 +39,18 @@ namespace BlazorBuddy.WebApp.Repositories
         {
             var studyPage = await _context.StudyPages
                 .Include(sp => sp.Notes)
+                .Include(sp => sp.Owner)
                 .FirstOrDefaultAsync(sp => sp.Id == studyPageId);
 
             if (studyPage == null)
                 throw new Exception("Study page not found");
 
+            // Use the existing owner from the study page to avoid tracking conflicts
+            var existingOwner = studyPage.Owner;
+
             var note = new NoteDocument()
             {
-                Owner = owner,
+                Owner = existingOwner,
                 Title = title,
                 Content = content
             };
