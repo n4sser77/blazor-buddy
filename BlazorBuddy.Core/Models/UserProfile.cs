@@ -11,6 +11,8 @@ namespace BlazorBuddy.Models
         public string ProfilePicture { get; set; } = "";
 
         public List<ChatGroup> ChatGroups { get; set; } = [];
+        public List<StudyPage> StudyPages { get; set; } = [];
+        public List<FriendList> FriendLists { get; set; } = [];
 
         public UserProfile()
         {

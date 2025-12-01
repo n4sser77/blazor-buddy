@@ -43,5 +43,6 @@ namespace BlazorBuddy.WebApp.Data
         public DbSet<Canvas> Canvases { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<FriendList> FriendLists { get; set; }
+      
     }
 }
