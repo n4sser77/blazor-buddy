@@ -18,4 +18,18 @@ public class StudyPageStateServiceTests
         Assert.False(result);
 
     }   
+    [Fact]
+    public void IsCacheValid_WhenCacheIsSet_ReturnsTrue()
+    {
+        // Give
+        var service = new StudyPageStateService();
+        var studyPages = new List<StudyPage> { new StudyPage { Owner = new UserProfile { Id = "test_owner" } } };
+
+        // When
+        service.SetStudyPages (studyPages);
+        var result = service.IsCacheValid();
+        // Then
+        Assert.True (result);
+    }
+
 }
