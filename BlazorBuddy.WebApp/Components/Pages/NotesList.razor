@@ -1,10 +1,17 @@
 @page "/studypages/{StudyPageId:guid}/notes"
+@attribute [Authorize]
 @rendermode InteractiveServer
 @using BlazorBuddy.Models
 @using BlazorBuddy.WebApp.Repositories.Interfaces
+@using BlazorBuddy.WebApp.Data
+@using BlazorBuddy.WebApp.Services
+@using Microsoft.AspNetCore.Authorization
 @inject IStudyPageRepo StudyPageRepo
 @inject INoteRepo NoteRepo
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ApplicationDbContext DbContext
+@inject NotesStateService NotesStateService
 
 <PageTitle>@studyPageTitle - Notes</PageTitle>
 
@@ -51,12 +58,18 @@
         <div class="notes-grid">
             @foreach (var note in filteredNotes)
             {
-                <div class="note-card" @onclick="() => NavigateToNote(note.Id)">
-                    <h3>@note.Title</h3>
-                    <p class="content-preview">@GetContentPreview(note.Content)</p>
-                    <div class="card-footer">
-                        <span class="meta-info">🔗 @note.Links.Count links</span>
-                        <span class="meta-info">🏷️ @note.Tags.Count tags</span>
+                <div class="note-card">
+                    <div class="card-actions">
+                        <button class="btn-icon" @onclick="() => ShowEditDialog(note)" @onclick:stopPropagation="true" title="Edit">✏️</button>
+                        <button class="btn-icon" @onclick="() => ShowDeleteConfirm(note.Id)" @onclick:stopPropagation="true" title="Delete">🗑️</button>
+                    </div>
+                    <div @onclick="() => NavigateToNote(note.Id)">
+                        <h3>@note.Title</h3>
+                        <p class="content-preview">@GetContentPreview(note.Content)</p>
+                        <div class="card-footer">
+                            <span class="meta-info">🔗 @note.Links.Count links</span>
+                            <span class="meta-info">🏷️ @note.Tags.Count tags</span>
+                        </div>
                     </div>
                 </div>
             }
@@ -83,6 +96,41 @@
             </div>
         </div>
     }
+
+    @if (showEditDialog)
+    {
+        <div class="modal-overlay" @onclick="HideEditDialog">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <h2>Edit Note</h2>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input class="form-control" @bind="editTitle" placeholder="Enter note title" />
+                </div>
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea class="form-control" @bind="editContent" placeholder="Enter note content" rows="5"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" @onclick="UpdateNote" disabled="@string.IsNullOrWhiteSpace(editTitle)">Save</button>
+                    <button class="btn btn-secondary" @onclick="HideEditDialog">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (showDeleteConfirm)
+    {
+        <div class="modal-overlay" @onclick="HideDeleteConfirm">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <h2>Delete Note</h2>
+                <p>Are you sure you want to delete this note? This action cannot be undone.</p>
+                <div class="modal-actions">
+                    <button class="btn btn-danger" @onclick="DeleteNote">Delete</button>
+                    <button class="btn btn-secondary" @onclick="HideDeleteConfirm">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 
@@ -95,8 +143,15 @@
     private string studyPageDescription = "";
     private bool isLoading = true;
     private bool showCreateDialog = false;
+    private bool showEditDialog = false;
+    private bool showDeleteConfirm = false;
     private string newTitle = "";
     private string newContent = "";
+    private string editTitle = "";
+    private string editContent = "";
+    private Guid editingNoteId = Guid.Empty;
+    private Guid deletingNoteId = Guid.Empty;
+    private string currentUserId = "";
     private string searchQuery = "";
 
     private List<NoteDocument> filteredNotes =>
@@ -109,6 +164,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+        }
+        
         await LoadStudyPageInfo();
         await LoadNotes();
         isLoading = false;
@@ -126,7 +189,17 @@
 
     private async Task LoadNotes()
     {
-        notes = await NoteRepo.GetNotesForStudyPageAsync(StudyPageId);
+        // Check cache first
+        if (NotesStateService.IsCacheValid(StudyPageId))
+        {
+            notes = NotesStateService.GetCachedNotes(StudyPageId) ?? new();
+        }
+        else
+        {
+            // Fetch from database and cache
+            notes = await NoteRepo.GetNotesForStudyPageAsync(StudyPageId);
+            NotesStateService.SetNotes(StudyPageId, notes);
+        }
     }
 
     private void ShowCreateDialog()
@@ -143,17 +216,28 @@
 
     private async Task CreateNote()
     {
-        if (string.IsNullOrWhiteSpace(newTitle))
+        if (string.IsNullOrWhiteSpace(newTitle) || string.IsNullOrWhiteSpace(currentUserId))
             return;
 
-        var demoUser = new UserProfile
+        // Get or create user profile
+        var userProfile = await DbContext.UserProfiles.FindAsync(currentUserId);
+        if (userProfile == null)
         {
-            Id = "demo-user",
-            Username = "Demo User",
-            DisplayName = "Demo User"
-        };
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var username = authState.User.Identity?.Name ?? "User";
+            
+            userProfile = new UserProfile
+            {
+                Id = currentUserId,
+                Username = username,
+                DisplayName = username
+            };
+            DbContext.UserProfiles.Add(userProfile);
+            await DbContext.SaveChangesAsync();
+        }
 
-        await NoteRepo.CreateNoteAsync(newTitle, newContent, demoUser, StudyPageId);
+        await NoteRepo.CreateNoteAsync(newTitle, newContent, userProfile, StudyPageId);
+        NotesStateService.InvalidateCache(StudyPageId);
         await LoadNotes();
         HideCreateDialog();
     }
@@ -171,6 +255,49 @@
         return content.Length > 150
             ? content.Substring(0, 150) + "..."
             : content;
+    }
+
+    private void ShowEditDialog(NoteDocument note)
+    {
+        editingNoteId = note.Id;
+        editTitle = note.Title;
+        editContent = note.Content;
+        showEditDialog = true;
+    }
+
+    private void HideEditDialog()
+    {
+        showEditDialog = false;
+    }
+
+    private async Task UpdateNote()
+    {
+        if (string.IsNullOrWhiteSpace(editTitle))
+            return;
+
+        await NoteRepo.UpdateNoteAsync(editingNoteId, editTitle, editContent);
+        NotesStateService.InvalidateCache(StudyPageId);
+        await LoadNotes();
+        HideEditDialog();
+    }
+
+    private void ShowDeleteConfirm(Guid noteId)
+    {
+        deletingNoteId = noteId;
+        showDeleteConfirm = true;
+    }
+
+    private void HideDeleteConfirm()
+    {
+        showDeleteConfirm = false;
+    }
+
+    private async Task DeleteNote()
+    {
+        await NoteRepo.DeleteNoteAsync(deletingNoteId, currentUserId);
+        NotesStateService.InvalidateCache(StudyPageId);
+        await LoadNotes();
+        HideDeleteConfirm();
     }
 
     private void GoBackToStudyPages()
