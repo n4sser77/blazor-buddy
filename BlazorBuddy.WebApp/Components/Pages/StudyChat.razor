@@ -1,8 +1,359 @@
 ﻿@page "/studychat"
 @rendermode InteractiveServer
+@using BlazorBuddy.Core.Interfaces
+@using BlazorBuddy.Models
+@using BlazorBuddy.WebApp.Components.Modules
+@using BlazorBuddy.WebApp.Services
+@using BlazorBuddy.WebApp.Services.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IChatService ChatService
+@inject IUserRepo UserRepo
+@inject IChatRepo ChatRepo
+@inject IChatEventBroker ChatBroker
+@attribute [Authorize]
+
+@inject IJSRuntime JSRuntime
+@implements IDisposable
 
 <PageTitle>Study Chat</PageTitle>
 
-<h1>Study Chat</h1>
+<div class="chat-container">
 
-<p>Coming soon</p>
+    <div class="chat-sidebar">
+        <div class="sidebar-header">
+            <h3>Active Groups</h3>
+            <button class="btn-icon" @onclick="() => CreateGroupDrawer?.Open()" title="New Group">+</button>
+        </div>
+
+        <div class="group-list">
+            @if (ActiveGroups == null)
+            {
+                <div class="loading-text">Loading groups...</div>
+            }
+            else if (!ActiveGroups.Any())
+            {
+                <div class="empty-text">No active groups.</div>
+            }
+            else
+            {
+                @foreach (var group in ActiveGroups)
+                {
+                    <div class="group-item @(SelectedGroup?.Id == group.Id ? "active" : "")"
+                         @onclick="() => SelectGroup(group)">
+                        <div class="group-avatar">
+                            @GetInitials(group.Title)
+                        </div>
+                        <div class="group-info">
+                            <span class="group-name">@group.Title</span>
+                            <span class="group-last-msg">
+                                @(group.Messages?.LastOrDefault()?.Content ?? "No messages yet")
+                            </span>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="user-profile-section">
+            <div class="user-avatar">Me</div>
+            <div class="user-name">@(CurrentUserProfile?.DisplayName != null ? CurrentUserProfile.DisplayName : Username)</div>
+        </div>
+    </div>
+
+    <div class="chat-main">
+        @if (SelectedGroup == null)
+        {
+            <div class="chat-placeholder">
+                <div class="placeholder-content">
+                    <h2>Select a group to start chatting</h2>
+                    <p>Join a study group or create a new one to collaborate.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="chat-header">
+                <div class="header-info">
+                    <h2>@SelectedGroup.Title</h2>
+                    <span class="member-count">@(SelectedGroup.Users?.Count() ?? 0) members</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-secondary" @onclick="AddUserToCurrentGroup">⚙️ Settings</button>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messagesList">
+                @if (SelectedGroup.Messages != null)
+                {
+                    @foreach (var msg in SelectedGroup.Messages)
+                    {
+                        var isMe = msg.FromUser.Id == CurrentUserId;
+                        <div class="message-wrapper @(isMe ? "me" : "others")">
+
+                            <div class="message-sender">
+                                @(isMe ? "Me" : @msg.FromUser.DisplayName)
+
+                            </div>
+
+                            <div class="message-bubble">
+                                @msg.Content
+                            </div>
+                            <div class="message-time">
+                                @msg.SentAt.ToShortTimeString()
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="chat-input-area">
+                <div class="input-wrapper">
+                    <input type="text"
+                           @bind="NewMessageInput"
+                           @bind:event="oninput"
+                           @onkeydown="@EnterKeyHandler"
+                           placeholder="Type a message..." />
+
+                    <button class="btn-send" @onclick="SendMessage"
+                            disabled="@string.IsNullOrWhiteSpace(NewMessageInput)">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <Drawer @ref="GroupSettingsDrawer" Title="Group Settings">
+        <Body>
+            <input class="edit-title" @onchange="OnTitleChanged" type="text" value="@SelectedGroup?.Title" />
+            @if (AllUsers == null)
+            {
+                <p>Loading users...</p>
+            }
+            else
+            {
+
+                @foreach (var u in AllUsers)
+                {
+                    <div class="user-row">
+                        <span>@u.DisplayName (@u.Id)</span>
+                        @if (SelectedGroup is not null)
+                        {
+                            @if (!SelectedGroup.IsUserInGroup(u.Id))
+                            {
+                                <button class="btn-secondary" @onclick="() => InviteUser(u.Id)">Invite</button>
+                            }
+                            else
+                            {
+
+                                <p class="member">member</p>
+                            }
+
+
+                        }
+
+                    </div>
+                }
+            }
+        </Body>
+
+        <Footer>
+            <button class="btn-secondary" @onclick="() => GroupSettingsDrawer?.Close()">Close</button>
+        </Footer>
+    </Drawer>
+
+    <Drawer @ref="CreateGroupDrawer" Title="Create Group">
+        <Body>
+            <input class="edit-title" @onchange="OnTitleChanged" type="text" value="@(newChat?.Title ?? "Unamed Group")" />
+            @if (AllUsers == null)
+            {
+                <p>Loading users...</p>
+            }
+            else
+            {
+
+                @foreach (var u in AllUsers)
+                {
+                    <div class="user-row">
+                        <span>@u.DisplayName (@u.Id)</span>
+                        @if (newChat is not null)
+                        {
+                            @if (!newChat.IsUserInGroup(u.Id))
+                            {
+                                <button class="btn-secondary" @onclick="() => newChat.Users.Add(u)"> Add</button>
+                            }
+                            else
+                            {
+
+                                <p class="member">member</p>
+                            }
+
+
+                        }
+
+                    </div>
+                }
+            }
+        </Body>
+
+        <Footer>
+            <button class="btn-secondary" @onclick="() => CreateGroupDrawer?.Close()">Close</button>
+            <button class="btn-secondary" @onclick="() => CreateGroup(newChat.Title, newChat.Users)">Create</button>
+        </Footer>
+    </Drawer>
+
+</div>
+
+@code {
+    private List<ChatGroup> ActiveGroups = [];
+    private ChatGroup? SelectedGroup;
+    private string NewMessageInput = "";
+    private string? CurrentUserId;
+    private string? Username;
+    private UserProfile? CurrentUserProfile;
+    private ChatGroup newChat = new() { Title = "Unnamed Group" };
+
+    private List<UserProfile> AllUsers = [];
+
+    private Drawer? GroupSettingsDrawer;
+    private Drawer? CreateGroupDrawer;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        ChatBroker.OnChatGroupUpdate += HandleChatGroupUpdate;
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        
+
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+
+            CurrentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            Username = user.Identity.Name;
+        }
+
+
+        if (CurrentUserId is null) return;
+        CurrentUserProfile = await UserRepo.GetUserById(CurrentUserId);
+        if(CurrentUserProfile is null)
+            
+        AllUsers = await UserRepo.GetAllUsers();
+        AllUsers = AllUsers.Where(u => u.Id != CurrentUserId).ToList();
+
+
+        ActiveGroups = await ChatRepo.GetChatGroupsByUserId(CurrentUserId);
+    }
+
+    private async Task AddUserToCurrentGroup()
+    {
+        if (SelectedGroup == null) return;
+        GroupSettingsDrawer?.Open();
+    }
+
+    private async Task InviteUser(string userId)
+    {
+
+        if (SelectedGroup is null) return;
+
+        await ChatService.AddUserToChatGroup(SelectedGroup.Id, userId);
+        GroupSettingsDrawer?.Close();
+
+    }
+    private async Task CreateGroup(string title, List<UserProfile> users)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            title = "Unnamed Group";
+        }
+        var fetchedCurrentUser = await UserRepo.GetUserById(CurrentUserId!);
+        if (fetchedCurrentUser is null)
+            return;
+        users.Add(fetchedCurrentUser);
+        SelectedGroup = await ChatRepo.CreateChatGroup(title, users);
+        ActiveGroups = await ChatRepo.GetChatGroupsByUserId(CurrentUserId!);
+        CreateGroupDrawer?.Close();
+        StateHasChanged();
+    }
+
+    private async void HandleChatGroupUpdate(ChatGroup updatedGroup)
+    {
+        await InvokeAsync(() =>
+        {
+            var index = ActiveGroups.FindIndex(g => g.Id == updatedGroup.Id);
+
+            if (index != -1)
+                ActiveGroups[index] = updatedGroup;
+            else
+                ActiveGroups.Add(updatedGroup);
+
+            if (SelectedGroup?.Id == updatedGroup.Id)
+            {
+                SelectedGroup = updatedGroup;
+                StateHasChanged();
+                ScrollToBottom();
+            }
+            else
+            {
+                StateHasChanged();
+            }
+        });
+    }
+
+    private void SelectGroup(ChatGroup group)
+    {
+        SelectedGroup = group;
+        ScrollToBottom();
+    }
+
+    private async Task SendMessage()
+    {
+
+        if (string.IsNullOrWhiteSpace(NewMessageInput) || SelectedGroup == null) return;
+
+        var text = NewMessageInput;
+        NewMessageInput = string.Empty;
+
+        await ChatService.SendMessage(SelectedGroup.Id, CurrentUserId!, text);
+    }
+
+    private async Task EnterKeyHandler(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Code == "Enter")
+            await SendMessage();
+    }
+
+    private async void ScrollToBottom()
+    {
+        await Task.Delay(50);
+        await JSRuntime.InvokeVoidAsync("eval",
+            "var elem = document.getElementById('messagesList'); if(elem) elem.scrollTop = elem.scrollHeight;");
+    }
+
+    private string GetInitials(string title) =>
+        string.IsNullOrEmpty(title) ? "?" : title.Substring(0, Math.Min(2, title.Length)).ToUpper();
+
+    private void OnTitleChanged(ChangeEventArgs e)
+    {
+        if (e.Value is string newTitle)
+        {
+            if (string.IsNullOrWhiteSpace(newTitle)) return;
+            if (SelectedGroup is null) return;
+            SelectedGroup.Title = newTitle;
+            ChatRepo.UpdateChatGroup(SelectedGroup);
+        }
+
+
+
+    }
+    public void Dispose()
+    {
+        ChatBroker.OnChatGroupUpdate -= HandleChatGroupUpdate;
+    }
+}
+
+

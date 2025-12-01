@@ -1,0 +1,116 @@
+﻿/* =========================================
+   DRAWER COMPONENT STYLES
+   ========================================= */
+
+/* 1. The Overlay (Backdrop) */
+.drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6); /* Darker dim for better contrast */
+    backdrop-filter: blur(4px); /* Stronger blur for focus */
+    z-index: 900;
+    /* Animation Logic */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+    /* State: Overlay Open */
+    .drawer-overlay.open {
+        opacity: 1;
+        visibility: visible;
+    }
+
+/* 2. The Sliding Panel */
+.drawer-panel {
+    position: fixed;
+    top: 0;
+    right: 0; /* Positioned right, but moved out using transform */
+    height: 100%;
+    width: 400px;
+    max-width: 85vw; /* Responsive constraint */
+    z-index: 1000;
+    /* Theme Colors */
+    background-color: var(--bg-component);
+    border-left: 1px solid var(--border-color);
+    box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5); /* Deep shadow */
+    color: var(--text-subtitle);
+    /* Flex Layout */
+    display: flex;
+    flex-direction: column;
+    /* Slide Animation */
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); /* Smooth easing */
+}
+
+    /* State: Panel Open */
+    .drawer-panel.open {
+        transform: translateX(0);
+    }
+
+/* 3. Header Section */
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background-color: var(--bg-component); /* Match panel */
+    border-bottom: 1px solid var(--border-color);
+}
+
+    .drawer-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-main); /* High emphasis text */
+    }
+
+/* 4. Close Button */
+.drawer-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+}
+
+    .drawer-close:hover {
+        color: var(--text-main);
+        background-color: var(--bg-highlight);
+    }
+
+/* 5. Body Section */
+.drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    color: var(--text-subtitle);
+}
+
+    /* Scrollbar Styling for Webkit */
+    .drawer-body::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .drawer-body::-webkit-scrollbar-track {
+        background: var(--bg-component);
+    }
+
+    .drawer-body::-webkit-scrollbar-thumb {
+        background-color: var(--border-color);
+        border-radius: 4px;
+    }
+
+/* 6. Footer Section */
+.drawer-footer {
+    padding: 1rem 1.5rem;
+    background-color: var(--bg-body); /* Slightly darker/different to anchor bottom */
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
