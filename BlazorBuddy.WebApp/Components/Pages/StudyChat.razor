@@ -24,7 +24,7 @@
     <div class="chat-sidebar">
         <div class="sidebar-header">
             <h3>Active Groups</h3>
-            <button class="btn-icon" @onclick="() => OpenChatGroupDrawer()" title="New Group">+</button>
+            <button class="btn-icon" @onclick="() => OpenCreateGroupDrawer()" title="New Group">+</button>
         </div>
 
         <div class="group-list">
@@ -80,7 +80,7 @@
                     <span class="member-count">@(SelectedGroup.Users?.Count() ?? 0) members</span>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-secondary" @onclick="AddUserToCurrentGroup">⚙️ Settings</button>
+                    <button class="btn-secondary" @onclick="OpenGroupSettingsDrawer">⚙️ Settings</button>
                 </div>
             </div>
 
@@ -260,10 +260,16 @@
 
     }
 
-    private async Task AddUserToCurrentGroup()
+    private async Task OpenGroupSettingsDrawer()
     {
         if (SelectedGroup == null) return;
+        AllUsers = await UserRepo.GetAllUsers();
         GroupSettingsDrawer?.Open();
+    }
+    private async Task OpenCreateGroupDrawer()
+    {
+        AllUsers = await UserRepo.GetAllUsers();
+        CreateGroupDrawer?.Open();
     }
 
     private async Task InviteUser(string userId)
