@@ -15,21 +15,6 @@ namespace BlazorBuddy.WebApp.Repositories
             _context = context;
         }
 
-        public async Task<bool> AddFriendAsync(string userId, string friendId)
-        {
-            var newFriend = new FriendList
-            {
-                UserId = userId,
-                FriendId = friendId,
-                Status = FriendStatus.Accepted,
-                SentAt = DateTime.UtcNow
-            };
-
-            _context.FriendLists.Add(newFriend);
-            await _context.SaveChangesAsync();
-
-            return true;
-        }
         public async Task<bool> RemoveFriendAsync(string userId, string friendId)
         {
             var friendship = await _context.FriendLists
@@ -119,6 +104,17 @@ namespace BlazorBuddy.WebApp.Repositories
                     ((fl.UserId == userId && fl.FriendId == friendId) ||
                      (fl.UserId == friendId && fl.FriendId == userId)) &&
                     fl.Status == FriendStatus.Accepted);
+        }
+
+        public async Task<List<string>> GetSentRequestsAsync(string userId)
+        {
+            var sentRequestIds = await _context.FriendLists
+                .AsNoTracking()
+                .Where(fl => fl.UserId == userId && fl.Status == FriendStatus.Pending)
+                .Select(fl => fl.FriendId)
+                .ToListAsync();
+
+            return sentRequestIds;
         }
     }
 }
