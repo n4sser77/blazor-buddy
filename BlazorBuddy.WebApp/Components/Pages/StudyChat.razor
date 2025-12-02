@@ -166,7 +166,7 @@
 
     <Drawer @ref="CreateGroupDrawer" Title="Create Group">
         <Body>
-            <input class="edit-title" @onchange="OnTitleChanged" type="text" value="@(newChat?.Title ?? "Unamed Group")" />
+            <input class="edit-title" @onchange="OnCreateTitleChanged" type="text" value="@(newChat?.Title ?? "Unamed Group")" />
             @if (AllUsers == null)
             {
                 <p>Loading users...</p>
@@ -183,6 +183,7 @@
                             @if (!newChat.IsUserInGroup(u.Id))
                             {
                                 <button class="btn-secondary" @onclick="() => newChat.Users.Add(u)"> Add</button>
+
                             }
                             else
                             {
@@ -269,6 +270,7 @@
     private async Task OpenCreateGroupDrawer()
     {
         await UpdateFriendsList();
+        newChat = new() { Title = "Unnamed Group" };
         CreateGroupDrawer?.Open();
     }
 
@@ -283,15 +285,12 @@
     }
     private async Task CreateGroup(string title, List<UserProfile> users)
     {
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            title = "Unnamed Group";
-        }
         var fetchedCurrentUser = await UserRepo.GetUserById(CurrentUserId!);
         if (fetchedCurrentUser is null)
             return;
         users.Add(fetchedCurrentUser);
-        SelectedGroup = await ChatRepo.CreateChatGroup(title, users);
+        newChat = await ChatRepo.CreateChatGroup(title, users);
+        SelectedGroup = newChat;
         ActiveGroups = await ChatRepo.GetChatGroupsByUserId(CurrentUserId!);
         CreateGroupDrawer?.Close();
         StateHasChanged();
@@ -323,7 +322,6 @@
 
     private async Task SelectGroup(ChatGroup group)
     {
-        await OpenChatGroupDrawer();
         SelectedGroup = group;
         ScrollToBottom();
     }
@@ -364,9 +362,15 @@
             SelectedGroup.Title = newTitle;
             ChatRepo.UpdateChatGroup(SelectedGroup);
         }
+    }
 
-
-
+    private void OnCreateTitleChanged(ChangeEventArgs e)
+    {
+        if (e.Value is string newTitle)
+        {
+            if (string.IsNullOrEmpty(newTitle)) return;
+            newChat.Title = newTitle;
+        }
     }
     public void Dispose()
     {
