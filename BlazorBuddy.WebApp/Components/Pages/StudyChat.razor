@@ -263,12 +263,12 @@
     private async Task OpenGroupSettingsDrawer()
     {
         if (SelectedGroup == null) return;
-        AllUsers = await UserRepo.GetAllUsers();
+        await UpdateFriendsList();
         GroupSettingsDrawer?.Open();
     }
     private async Task OpenCreateGroupDrawer()
     {
-        AllUsers = await UserRepo.GetAllUsers();
+        await UpdateFriendsList();
         CreateGroupDrawer?.Open();
     }
 
