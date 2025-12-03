@@ -10,6 +10,6 @@ public interface IChatService
     //event Action<ChatGroup> OnChatGroupUpdate;
     Task AddUserToChatGroup(Guid groupId, string userId);
     Task SendMessage(Guid groupId, string userId, string message);
-
-
+    Task<ChatGroup> UpdateChatGroup(ChatGroup updatedChatgroup);
+    Task<ChatGroup> CreateChatGroup(string title, List<UserProfile> members);
 }

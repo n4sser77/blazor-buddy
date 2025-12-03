@@ -1,6 +1,7 @@
 ﻿using BlazorBuddy.Core.Interfaces;
 using BlazorBuddy.Models;
 using BlazorBuddy.WebApp.Services.Interfaces;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -55,4 +56,27 @@ public class ChatService : IChatService
         _broker.NotifyStateChanged(updatedGroup);
     }
 
+    public async Task<ChatGroup> CreateChatGroup(string title, List<UserProfile> members)
+    {
+        var chat = await _chatRepo.CreateChatGroup(title, members)
+            ?? throw new ArgumentNullException("Group is null");
+
+        List<UserProfile> fetchedMembers = [];
+        foreach (var user in members)
+        {
+            var fetchedUser = await _userRepo.GetUserById(user.Id) ??
+                throw new ArgumentNullException("User does not exist");
+            fetchedMembers.Add(fetchedUser);
+        }
+        _broker.NotifyStateChanged(chat);
+        return chat;
+    }
+
+    public async Task<ChatGroup> UpdateChatGroup(ChatGroup updatedChatgroup)
+    {
+        var chat = await _chatRepo.UpdateChatGroup(updatedChatgroup)
+            ?? throw new ArgumentNullException("Group is null");
+        _broker.NotifyStateChanged(chat);
+        return chat;
+    }
 }
