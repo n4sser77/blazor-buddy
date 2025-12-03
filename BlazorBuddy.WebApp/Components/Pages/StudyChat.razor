@@ -24,7 +24,7 @@
     <div class="chat-sidebar">
         <div class="sidebar-header">
             <h3>Active Groups</h3>
-            <button class="btn-icon" @onclick="() => CreateGroupDrawer?.Open()" title="New Group">+</button>
+            <button class="btn-icon" @onclick="() => OpenCreateGroupDrawer()" title="New Group">+</button>
         </div>
 
         <div class="group-list">
@@ -80,7 +80,7 @@
                     <span class="member-count">@(SelectedGroup.Users?.Count() ?? 0) members</span>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-secondary" @onclick="AddUserToCurrentGroup">⚙️ Settings</button>
+                    <button class="btn-secondary" @onclick="OpenGroupSettingsDrawer">⚙️ Settings</button>
                 </div>
             </div>
 
@@ -166,7 +166,7 @@
 
     <Drawer @ref="CreateGroupDrawer" Title="Create Group">
         <Body>
-            <input class="edit-title" @onchange="OnTitleChanged" type="text" value="@(newChat?.Title ?? "Unamed Group")" />
+            <input class="edit-title" @onchange="OnCreateTitleChanged" type="text" value="@(newChat?.Title ?? "Unamed Group")" />
             @if (AllUsers == null)
             {
                 <p>Loading users...</p>
@@ -183,6 +183,7 @@
                             @if (!newChat.IsUserInGroup(u.Id))
                             {
                                 <button class="btn-secondary" @onclick="() => newChat.Users.Add(u)"> Add</button>
+
                             }
                             else
                             {
@@ -227,7 +228,7 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        
+
 
 
         if (user.Identity?.IsAuthenticated == true)
@@ -240,19 +241,37 @@
 
         if (CurrentUserId is null) return;
         CurrentUserProfile = await UserRepo.GetUserById(CurrentUserId);
-        if(CurrentUserProfile is null)
-            
-        AllUsers = await UserRepo.GetAllUsers();
+        if (CurrentUserProfile is null)
+
+            AllUsers = await UserRepo.GetAllUsers();
         AllUsers = AllUsers.Where(u => u.Id != CurrentUserId).ToList();
 
 
         ActiveGroups = await ChatRepo.GetChatGroupsByUserId(CurrentUserId);
     }
+    private async Task OpenChatGroupDrawer()
+    {
+        await UpdateFriendsList();
+        CreateGroupDrawer?.Open();
+    }
+    private async Task UpdateFriendsList()
+    {
+        AllUsers = await UserRepo.GetAllUsers();
+        AllUsers = AllUsers.Where(u => u.Id != CurrentUserProfile?.Id).ToList();
 
-    private async Task AddUserToCurrentGroup()
+    }
+
+    private async Task OpenGroupSettingsDrawer()
     {
         if (SelectedGroup == null) return;
+        await UpdateFriendsList();
         GroupSettingsDrawer?.Open();
+    }
+    private async Task OpenCreateGroupDrawer()
+    {
+        await UpdateFriendsList();
+        newChat = new() { Title = "Unnamed Group" };
+        CreateGroupDrawer?.Open();
     }
 
     private async Task InviteUser(string userId)
@@ -266,15 +285,12 @@
     }
     private async Task CreateGroup(string title, List<UserProfile> users)
     {
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            title = "Unnamed Group";
-        }
         var fetchedCurrentUser = await UserRepo.GetUserById(CurrentUserId!);
         if (fetchedCurrentUser is null)
             return;
         users.Add(fetchedCurrentUser);
-        SelectedGroup = await ChatRepo.CreateChatGroup(title, users);
+        newChat = await ChatRepo.CreateChatGroup(title, users);
+        SelectedGroup = newChat;
         ActiveGroups = await ChatRepo.GetChatGroupsByUserId(CurrentUserId!);
         CreateGroupDrawer?.Close();
         StateHasChanged();
@@ -304,7 +320,7 @@
         });
     }
 
-    private void SelectGroup(ChatGroup group)
+    private async Task SelectGroup(ChatGroup group)
     {
         SelectedGroup = group;
         ScrollToBottom();
@@ -346,9 +362,15 @@
             SelectedGroup.Title = newTitle;
             ChatRepo.UpdateChatGroup(SelectedGroup);
         }
+    }
 
-
-
+    private void OnCreateTitleChanged(ChangeEventArgs e)
+    {
+        if (e.Value is string newTitle)
+        {
+            if (string.IsNullOrEmpty(newTitle)) return;
+            newChat.Title = newTitle;
+        }
     }
     public void Dispose()
     {
