@@ -38,9 +38,13 @@ namespace BlazorBuddy.WebApp.Repositories
 
         public async Task<StudyPage> CreateStudyPageAsync(string title, string description, UserProfile user)
         {
+            // Check if the user is already being tracked
+            var trackedUser = _context.ChangeTracker.Entries<UserProfile>()
+                .FirstOrDefault(e => e.Entity.Id == user.Id)?.Entity;
+
             var studyPage = new StudyPage()
             {
-                Owner = user,
+                Owner = trackedUser ?? user,
                 Title = title,
                 Description = description
             };
@@ -48,8 +52,6 @@ namespace BlazorBuddy.WebApp.Repositories
             _context.StudyPages.Add(studyPage);
             await _context.SaveChangesAsync();
             return studyPage;
-
-
         }
 
         public async Task<bool> UpdateStudyPageAsync(Guid id, string title, string description)
