@@ -2,7 +2,7 @@
 
 namespace BlazorBuddy.WebApp.Services.Interfaces
 {
-    public interface IFriendService
+    public interface IFriendListService
     {
         Task<List<UserProfile>> GetFriendsAsync(string userId);
         Task<List<UserProfile>> GetReceivedRequestsAsync(string userId);

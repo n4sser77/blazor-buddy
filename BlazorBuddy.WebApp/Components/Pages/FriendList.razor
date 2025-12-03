@@ -3,19 +3,18 @@
 @using BlazorBuddy.Core.Interfaces
 @using BlazorBuddy.Models
 @using BlazorBuddy.WebApp.Components.Modules
-@using BlazorBuddy.WebApp.Repositories.Interfaces
+@using BlazorBuddy.WebApp.Services.Interfaces
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IFriendListService FriendService
 @inject IUserRepo UserRepo
-@inject IFriendlistRepo FriendlistRepo
 @attribute [Authorize]
 
 <PageTitle>Friend List</PageTitle>
 
 <div class="friendlist-layout">
 
-    <!-- Vänlista -->
     <div class="friends-column">
         <div class="sidebar-header">
             <h3>Vänlista</h3>
@@ -50,7 +49,6 @@
         </div>
     </div>
 
-    <!-- Skickade förfrågningar -->
     <div class="requests-column">
         <div class="sidebar-header">
             <h3>Skickade förfrågningar</h3>
@@ -79,7 +77,6 @@
         </div>
     </div>
 
-    <!-- Mottagna förfrågningar -->
     <div class="requests-column">
         <div class="sidebar-header">
             <h3>Mottagna förfrågningar</h3>
@@ -153,7 +150,6 @@
 
 @code {
     private List<UserProfile> AllUsers = []; 
-    private List<UserProfile> AllUsersCache = [];
     private List<UserProfile> SentRequests = [];
     private List<UserProfile> ReceivedRequests = [];
     private string? CurrentUserId;
@@ -166,14 +162,14 @@
     {
         get
         {
-            
             var excludedIds = new HashSet<string>();
             if (CurrentUserId != null) excludedIds.Add(CurrentUserId);
             foreach (var user in AllUsers) excludedIds.Add(user.Id);
             foreach (var user in SentRequests) excludedIds.Add(user.Id);
             foreach (var user in ReceivedRequests) excludedIds.Add(user.Id);
 
-            var availableUsers = AllUsersCache.Where(u => !excludedIds.Contains(u.Id));
+            var allUsers = UserRepo.GetAllUsers().Result;
+            var availableUsers = allUsers.Where(u => !excludedIds.Contains(u.Id));
 
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
@@ -202,32 +198,20 @@
         
         CurrentUserProfile = await UserRepo.GetUserById(CurrentUserId);
         
-        // Cachea alla användare EN gång
-        AllUsersCache = await UserRepo.GetAllUsers();
-
-        var friendIds = await FriendlistRepo.GetFriendsAsync(CurrentUserId);
-        AllUsers = AllUsersCache.Where(u => friendIds.Contains(u.Id)).ToList();
-
-        var requestIds = await FriendlistRepo.GetFriendRequestsAsync(CurrentUserId);
-        ReceivedRequests = AllUsersCache.Where(u => requestIds.Contains(u.Id)).ToList();
-
-        var sentRequestIds = await FriendlistRepo.GetSentRequestsAsync(CurrentUserId);
-        SentRequests = AllUsersCache.Where(u => sentRequestIds.Contains(u.Id)).ToList();
+        AllUsers = await FriendService.GetFriendsAsync(CurrentUserId);
+        ReceivedRequests = await FriendService.GetReceivedRequestsAsync(CurrentUserId);
+        SentRequests = await FriendService.GetSentRequestsAsync(CurrentUserId);
     }
 
     private async Task AcceptRequest(string userId)
     {
         if (CurrentUserId == null) return;
 
-        var success = await FriendlistRepo.AcceptFriendRequestAsync(CurrentUserId, userId);
+        var success = await FriendService.AcceptRequestAsync(CurrentUserId, userId);
         if (success)
         {
-            var user = ReceivedRequests.FirstOrDefault(r => r.Id == userId);
-            if (user != null)
-            {
-                ReceivedRequests.Remove(user);
-                AllUsers.Add(user);
-            }
+            AllUsers = await FriendService.GetFriendsAsync(CurrentUserId);
+            ReceivedRequests = await FriendService.GetReceivedRequestsAsync(CurrentUserId);
             StateHasChanged();
         }
     }
@@ -236,14 +220,10 @@
     {
         if (CurrentUserId == null) return;
 
-        var success = await FriendlistRepo.DeclineFriendRequestAsync(CurrentUserId, userId);
+        var success = await FriendService.DeclineRequestAsync(CurrentUserId, userId);
         if (success)
         {
-            var user = ReceivedRequests.FirstOrDefault(r => r.Id == userId);
-            if (user != null)
-            {
-                ReceivedRequests.Remove(user);
-            }
+            ReceivedRequests = await FriendService.GetReceivedRequestsAsync(CurrentUserId);
             StateHasChanged();
         }
     }
@@ -252,15 +232,10 @@
     {
         if (CurrentUserId == null) return;
 
-        var success = await FriendlistRepo.SendFriendRequestAsync(CurrentUserId, friendId);
+        var success = await FriendService.SendFriendRequestAsync(CurrentUserId, friendId);
         if (success)
         {
-
-            var user = AllUsersCache.FirstOrDefault(u => u.Id == friendId);
-            if (user != null)
-            {
-                SentRequests.Add(user);
-            }
+            SentRequests = await FriendService.GetSentRequestsAsync(CurrentUserId);
             AddFriendDrawer?.Close();
             StateHasChanged();
         }

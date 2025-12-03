@@ -60,6 +60,7 @@ builder.Services.AddScoped<IChatRepo, ChatRepo>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<IChatEventBroker, ChatEventBroker>();
 builder.Services.AddScoped<IFriendlistRepo, FriendListRepo>();
+builder.Services.AddScoped<IFriendListService, FriendListService>();
 
 
 var app = builder.Build();
