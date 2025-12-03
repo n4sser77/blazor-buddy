@@ -43,7 +43,7 @@ if (!builder.Environment.IsEnvironment("IntegrationTest"))
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = true;
+        options.SignIn.RequireConfirmedAccount = false;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
@@ -53,6 +53,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddScoped<INoteRepo, NoteRepo>();
 builder.Services.AddScoped<IStudyPageRepo, StudyPageRepo>();
 builder.Services.AddSingleton<StudyPageStateService>();
+builder.Services.AddSingleton<NotesStateService>();
 builder.Services.AddScoped<IImageRepo, ImageRepo>();
 builder.Services.AddScoped<ICanvasRepo, CanvasRepo>();
 builder.Services.AddScoped<IUserRepo, UserProfileRepo>();

@@ -48,7 +48,7 @@
         border: 1px solid var(--border-color);
         border-radius: 8px;
         padding: 1.5rem;
-        cursor: pointer;
+        position: relative;
         transition: all 0.2s ease;
     }
 
@@ -56,6 +56,20 @@
             background-color: var(--bg-highlight);
             border-color: var(--brand-primary);
             transform: translateY(-2px);
+        }
+
+        .study-page-card .card-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .study-page-card:hover .card-actions {
+            opacity: 1;
         }
 
         .study-page-card h3 {
@@ -137,4 +151,30 @@
         .btn-secondary:hover {
             background-color: var(--bg-component);
             border-color: var(--text-muted);
+        }
+
+    .btn-icon {
+        background: var(--bg-component);
+        border: 1px solid var(--border-color);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+
+        .btn-icon:hover {
+            background: var(--bg-highlight);
+            border-color: var(--brand-primary);
+        }
+
+    .btn-danger {
+        background-color: var(--danger);
+        border: 1px solid var(--danger);
+        color: white;
+    }
+
+        .btn-danger:hover {
+            background-color: #c00000;
+            border-color: #c00000;
         }
