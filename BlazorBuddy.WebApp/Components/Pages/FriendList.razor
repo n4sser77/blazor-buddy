@@ -152,6 +152,7 @@
     private List<UserProfile> AllUsers = []; 
     private List<UserProfile> SentRequests = [];
     private List<UserProfile> ReceivedRequests = [];
+    private List<UserProfile> AllUsersCache = [];
     private string? CurrentUserId;
     private string? Username;
     private UserProfile? CurrentUserProfile;
@@ -168,8 +169,7 @@
             foreach (var user in SentRequests) excludedIds.Add(user.Id);
             foreach (var user in ReceivedRequests) excludedIds.Add(user.Id);
 
-            var allUsers = UserRepo.GetAllUsers().Result;
-            var availableUsers = allUsers.Where(u => !excludedIds.Contains(u.Id));
+            var availableUsers = AllUsersCache.Where(u => !excludedIds.Contains(u.Id));
 
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
@@ -197,6 +197,7 @@
         if (CurrentUserId is null) return;
         
         CurrentUserProfile = await UserRepo.GetUserById(CurrentUserId);
+        AllUsersCache = await UserRepo.GetAllUsers();
         
         AllUsers = await FriendService.GetFriendsAsync(CurrentUserId);
         ReceivedRequests = await FriendService.GetReceivedRequestsAsync(CurrentUserId);

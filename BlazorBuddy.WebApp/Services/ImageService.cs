@@ -19,58 +19,30 @@ namespace BlazorBuddy.WebApp.Services
 
         public async Task<Image> CreateImageAsync(byte[] imageData, string fileName, string contentType, string userId, Guid noteId)
         {
-            try
-            {
-                var owner = await _userRepo.GetUserById(userId);
-                if (owner == null)
-                    throw new ArgumentException("User not found");
+            var owner = await _userRepo.GetUserById(userId);
+            if (owner == null)
+                throw new ArgumentException("User not found");
 
-                return await _imageRepo.CreateImageAsync(imageData, fileName, contentType, owner, noteId);
-            }
-            catch
-            {
-                throw;
-            }
+            return await _imageRepo.CreateImageAsync(imageData, fileName, contentType, owner, noteId);
         }
 
         public async Task<Image?> GetImageByIdAsync(Guid imageId)
         {
-            try
-            {
-                return await _imageRepo.GetImageByIdAsync(imageId);
-            }
-            catch
-            {
-                return null;
-            }
+            return await _imageRepo.GetImageByIdAsync(imageId);
         }
 
         public async Task<List<Image>> GetImagesForNoteAsync(Guid noteId)
         {
-            try
-            {
-                return await _imageRepo.GetImagesForNoteAsync(noteId);
-            }
-            catch
-            {
-                return new List<Image>();
-            }
+            return await _imageRepo.GetImagesForNoteAsync(noteId);
         }
 
         public async Task<bool> DeleteImageAsync(Guid imageId, string userId)
         {
-            try
-            {
-                var image = await _imageRepo.GetImageByIdAsync(imageId);
-                if (image == null || image.Owner.Id != userId)
-                    return false;
-
-                return await _imageRepo.DeleteImageAsync(imageId);
-            }
-            catch
-            {
+            var image = await _imageRepo.GetImageByIdAsync(imageId);
+            if (image == null || image.Owner.Id != userId)
                 return false;
-            }
+
+            return await _imageRepo.DeleteImageAsync(imageId);
         }
     }
 }

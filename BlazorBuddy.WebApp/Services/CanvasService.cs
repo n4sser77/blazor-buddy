@@ -19,86 +19,44 @@ namespace BlazorBuddy.WebApp.Services
 
         public async Task<Canvas> CreateCanvasAsync(string name, string userId, Guid noteId)
         {
-            try
-            {
-                var owner = await _userRepo.GetUserById(userId);
-                if (owner == null)
-                    throw new ArgumentException("User not found");
+            var owner = await _userRepo.GetUserById(userId);
+            if (owner == null)
+                throw new ArgumentException("User not found");
 
-                return await _canvasRepo.CreateCanvasAsync(name, owner, noteId);
-            }
-            catch
-            {
-                throw;
-            }
+            return await _canvasRepo.CreateCanvasAsync(name, owner, noteId);
         }
 
         public async Task<Canvas?> GetCanvasByIdAsync(Guid id)
         {
-            try
-            {
-                return await _canvasRepo.GetCanvasByIdAsync(id);
-            }
-            catch
-            {
-                return null;
-            }
+            return await _canvasRepo.GetCanvasByIdAsync(id);
         }
 
         public async Task<List<Canvas>> GetCanvasesForNoteAsync(Guid noteId)
         {
-            try
-            {
-                return await _canvasRepo.GetCanvasesForNoteAsync(noteId);
-            }
-            catch
-            {
-                return new List<Canvas>();
-            }
+            return await _canvasRepo.GetCanvasesForNoteAsync(noteId);
         }
 
         public async Task<bool> UpdateCanvasAsync(Guid id, string name)
         {
-            try
-            {
-                return await _canvasRepo.UpdateCanvasAsync(id, name);
-            }
-            catch
-            {
-                return false;
-            }
+            return await _canvasRepo.UpdateCanvasAsync(id, name);
         }
 
         public async Task<bool> DeleteCanvasAsync(Guid id, string userId)
         {
-            try
-            {
-                var canvas = await _canvasRepo.GetCanvasByIdAsync(id);
-                if (canvas == null || canvas.Owner.Id != userId)
-                    return false;
-
-                return await _canvasRepo.DeleteCanvasAsync(id);
-            }
-            catch
-            {
+            var canvas = await _canvasRepo.GetCanvasByIdAsync(id);
+            if (canvas == null || canvas.Owner.Id != userId)
                 return false;
-            }
+
+            return await _canvasRepo.DeleteCanvasAsync(id);
         }
 
         public async Task<bool> AddUserToCanvasAsync(Guid canvasId, string userId)
         {
-            try
-            {
-                var user = await _userRepo.GetUserById(userId);
-                if (user == null)
-                    return false;
-
-                return await _canvasRepo.AddUserToCanvasAsync(canvasId, user);
-            }
-            catch
-            {
+            var user = await _userRepo.GetUserById(userId);
+            if (user == null)
                 return false;
-            }
+
+            return await _canvasRepo.AddUserToCanvasAsync(canvasId, user);
         }
     }
 }
