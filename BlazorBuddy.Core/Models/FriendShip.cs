@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BlazorBuddy.Core.Models
 {
-    public class FriendList
+    public class FriendShip
     {
         public Guid Id { get; set; }
         public string UserId { get; set; } = "";

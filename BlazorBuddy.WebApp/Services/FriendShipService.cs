@@ -5,12 +5,12 @@ using BlazorBuddy.WebApp.Services.Interfaces;
 
 namespace BlazorBuddy.WebApp.Services
 {
-    public class FriendListService : IFriendListService
+    public class FriendShipService : IFriendShipService
     {
-        private readonly IFriendlistRepo _friendlistRepo;
+        private readonly IFriendShipRepo _friendlistRepo;
         private readonly IUserRepo _userRepo;
 
-        public FriendListService(IFriendlistRepo friendlistRepo, IUserRepo userRepo)
+        public FriendShipService(IFriendShipRepo friendlistRepo, IUserRepo userRepo)
         {
             _friendlistRepo = friendlistRepo;
             _userRepo = userRepo;
