@@ -5,12 +5,12 @@
 @using BlazorBuddy.WebApp.Repositories.Interfaces
 @using BlazorBuddy.WebApp
 @using Microsoft.AspNetCore.Authorization
+@using BlazorBuddy.Core.Interfaces
 @inject IStudyPageRepo StudyPageRepo
+@inject IUserRepo UserRepo
 @inject StudyPageStateService StateService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
-@using BlazorBuddy.WebApp.Data
-@inject ApplicationDbContext DbContext
 
 
 <PageTitle>Study Pages</PageTitle>
@@ -195,22 +195,9 @@
         if (string.IsNullOrWhiteSpace(newTitle) || string.IsNullOrWhiteSpace(currentUserId))
             return;
 
-        // Get or create the user profile from database
-        var userProfile = await DbContext.UserProfiles.FindAsync(currentUserId);
+        var userProfile = await UserRepo.GetUserById(currentUserId);
         if (userProfile == null)
-        {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var username = authState.User.Identity?.Name ?? "User";
-            
-            userProfile = new UserProfile
-            {
-                Id = currentUserId,
-                Username = username,
-                DisplayName = username
-            };
-            DbContext.UserProfiles.Add(userProfile);
-            await DbContext.SaveChangesAsync();
-        }
+            return; // User profile should exist after registration
 
         await StudyPageRepo.CreateStudyPageAsync(newTitle, newDescription, userProfile);
         

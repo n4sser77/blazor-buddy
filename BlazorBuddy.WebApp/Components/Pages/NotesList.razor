@@ -3,14 +3,14 @@
 @rendermode InteractiveServer
 @using BlazorBuddy.Models
 @using BlazorBuddy.WebApp.Repositories.Interfaces
-@using BlazorBuddy.WebApp.Data
 @using BlazorBuddy.WebApp.Services
 @using Microsoft.AspNetCore.Authorization
+@using BlazorBuddy.Core.Interfaces
 @inject IStudyPageRepo StudyPageRepo
 @inject INoteRepo NoteRepo
+@inject IUserRepo UserRepo
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
-@inject ApplicationDbContext DbContext
 @inject NotesStateService NotesStateService
 
 <PageTitle>@studyPageTitle - Notes</PageTitle>
@@ -219,22 +219,9 @@
         if (string.IsNullOrWhiteSpace(newTitle) || string.IsNullOrWhiteSpace(currentUserId))
             return;
 
-        // Get or create user profile
-        var userProfile = await DbContext.UserProfiles.FindAsync(currentUserId);
+        var userProfile = await UserRepo.GetUserById(currentUserId);
         if (userProfile == null)
-        {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var username = authState.User.Identity?.Name ?? "User";
-            
-            userProfile = new UserProfile
-            {
-                Id = currentUserId,
-                Username = username,
-                DisplayName = username
-            };
-            DbContext.UserProfiles.Add(userProfile);
-            await DbContext.SaveChangesAsync();
-        }
+            return; // User profile should exist after registration
 
         await NoteRepo.CreateNoteAsync(newTitle, newContent, userProfile, StudyPageId);
         NotesStateService.InvalidateCache(StudyPageId);
