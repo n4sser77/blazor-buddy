@@ -1,12 +1,17 @@
-﻿@page "/studypages"
+﻿ @page "/studypages"
 @rendermode InteractiveServer
 @using BlazorBuddy.Models
 @using BlazorBuddy.WebApp.Services
 @using BlazorBuddy.WebApp.Repositories.Interfaces
+@using BlazorBuddy.WebApp
+@using Microsoft.AspNetCore.Authorization
+@using BlazorBuddy.Core.Interfaces
 @inject IStudyPageRepo StudyPageRepo
+@inject IUserRepo UserRepo
 @inject StudyPageStateService StateService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+
 
 <PageTitle>Study Pages</PageTitle>
 
@@ -46,11 +51,17 @@
         <div class="study-pages-grid">
             @foreach (var studyPage in filteredStudyPages)
             {
-                <div class="study-page-card" @onclick="() => NavigateToNotes(studyPage.Id)">
-                    <h3>@studyPage.Title</h3>
-                    <p class="description">@studyPage.Description</p>
-                    <div class="card-footer">
-                        <span class="notes-count">📝 @studyPage.Notes.Count notes</span>
+                <div class="study-page-card">
+                    <div class="card-actions">
+                        <button class="btn-icon" @onclick="() => ShowEditDialog(studyPage)" @onclick:stopPropagation="true" title="Edit">✏️</button>
+                        <button class="btn-icon" @onclick="() => ShowDeleteConfirm(studyPage.Id)" @onclick:stopPropagation="true" title="Delete">🗑️</button>
+                    </div>
+                    <div @onclick="() => NavigateToNotes(studyPage.Id)">
+                        <h3>@studyPage.Title</h3>
+                        <p class="description">@studyPage.Description</p>
+                        <div class="card-footer">
+                            <span class="notes-count">📝 @studyPage.Notes.Count notes</span>
+                        </div>
                     </div>
                 </div>
             }
@@ -77,6 +88,41 @@
             </div>
         </div>
     }
+
+    @if (showEditDialog)
+    {
+        <div class="modal-overlay" @onclick="HideEditDialog">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <h2>Edit Study Page</h2>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input class="form-control" @bind="editTitle" placeholder="Enter study page title" />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="form-control" @bind="editDescription" placeholder="Enter description" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" @onclick="UpdateStudyPage" disabled="@string.IsNullOrWhiteSpace(editTitle)">Save</button>
+                    <button class="btn btn-secondary" @onclick="HideEditDialog">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (showDeleteConfirm)
+    {
+        <div class="modal-overlay" @onclick="HideDeleteConfirm">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <h2>Delete Study Page</h2>
+                <p>Are you sure you want to delete this study page? This action cannot be undone.</p>
+                <div class="modal-actions">
+                    <button class="btn btn-danger" @onclick="DeleteStudyPage">Delete</button>
+                    <button class="btn btn-secondary" @onclick="HideDeleteConfirm">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 
@@ -84,8 +130,14 @@
     private List<StudyPage> studyPages = new();
     private bool isLoading = true;
     private bool showCreateDialog = false;
+    private bool showEditDialog = false;
+    private bool showDeleteConfirm = false;
     private string newTitle = "";
     private string newDescription = "";
+    private string editTitle = "";
+    private string editDescription = "";
+    private Guid editingStudyPageId = Guid.Empty;
+    private Guid deletingStudyPageId = Guid.Empty;
     private string currentUserId = "";
     private string searchQuery = "";
 
@@ -99,10 +151,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Use a demo user ID for now (no auth required)
-        currentUserId = "demo-user";
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
         
-        await LoadStudyPages();
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+            await LoadStudyPages();
+        }
+        
         isLoading = false;
     }
 
@@ -135,24 +192,63 @@
 
     private async Task CreateStudyPage()
     {
-        if (string.IsNullOrWhiteSpace(newTitle))
+        if (string.IsNullOrWhiteSpace(newTitle) || string.IsNullOrWhiteSpace(currentUserId))
             return;
 
-        // Create a demo user profile for now
-        var demoUser = new UserProfile
-        {
-            Id = currentUserId,
-            Username = "Demo User",
-            DisplayName = "Demo User"
-        };
+        var userProfile = await UserRepo.GetUserById(currentUserId);
+        if (userProfile == null)
+            return; // User profile should exist after registration
 
-        await StudyPageRepo.CreateStudyPageAsync(newTitle, newDescription, demoUser);
+        await StudyPageRepo.CreateStudyPageAsync(newTitle, newDescription, userProfile);
         
         // Invalidate cache when creating new study page
         StateService.InvalidateCache();
         
         await LoadStudyPages();
         HideCreateDialog();
+    }
+
+    private void ShowEditDialog(StudyPage studyPage)
+    {
+        editingStudyPageId = studyPage.Id;
+        editTitle = studyPage.Title;
+        editDescription = studyPage.Description;
+        showEditDialog = true;
+    }
+
+    private void HideEditDialog()
+    {
+        showEditDialog = false;
+    }
+
+    private async Task UpdateStudyPage()
+    {
+        if (string.IsNullOrWhiteSpace(editTitle))
+            return;
+
+        await StudyPageRepo.UpdateStudyPageAsync(editingStudyPageId, editTitle, editDescription);
+        StateService.InvalidateCache();
+        await LoadStudyPages();
+        HideEditDialog();
+    }
+
+    private void ShowDeleteConfirm(Guid studyPageId)
+    {
+        deletingStudyPageId = studyPageId;
+        showDeleteConfirm = true;
+    }
+
+    private void HideDeleteConfirm()
+    {
+        showDeleteConfirm = false;
+    }
+
+    private async Task DeleteStudyPage()
+    {
+        await StudyPageRepo.DeleteStudyPageAsync(deletingStudyPageId, currentUserId);
+        StateService.InvalidateCache();
+        await LoadStudyPages();
+        HideDeleteConfirm();
     }
 
     private void NavigateToNotes(Guid studyPageId)
