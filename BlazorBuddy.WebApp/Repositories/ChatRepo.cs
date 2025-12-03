@@ -31,7 +31,7 @@ public class ChatRepo : IChatRepo
 
     public async Task<List<ChatGroup>> GetChatGroupsByUserId(string userId)
     {
-        var chats = await _ctx.ChatGroups.Where(c => c.Users.Any(u => u.Id == userId)).Include(c => c.Messages).ThenInclude(m => m.FromUser).ToListAsync();
+        var chats = await _ctx.ChatGroups.Where(c => c.Users.Any(u => u.Id == userId)).Include(c => c.Users).Include(c => c.Messages).ThenInclude(m => m.FromUser).ToListAsync();
 
         return chats ?? [];
     }

@@ -289,7 +289,7 @@
         if (fetchedCurrentUser is null)
             return;
         users.Add(fetchedCurrentUser);
-        newChat = await ChatRepo.CreateChatGroup(title, users);
+        newChat = await ChatService.CreateChatGroup(title, users);
         SelectedGroup = newChat;
         ActiveGroups = await ChatRepo.GetChatGroupsByUserId(CurrentUserId!);
         CreateGroupDrawer?.Close();
@@ -323,6 +323,7 @@
     private async Task SelectGroup(ChatGroup group)
     {
         SelectedGroup = group;
+        
         ScrollToBottom();
     }
 
@@ -360,7 +361,7 @@
             if (string.IsNullOrWhiteSpace(newTitle)) return;
             if (SelectedGroup is null) return;
             SelectedGroup.Title = newTitle;
-            ChatRepo.UpdateChatGroup(SelectedGroup);
+            ChatService.UpdateChatGroup(SelectedGroup);
         }
     }
 
