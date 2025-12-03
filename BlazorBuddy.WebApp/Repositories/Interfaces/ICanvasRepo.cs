@@ -9,7 +9,7 @@ namespace BlazorBuddy.WebApp.Repositories.Interfaces
         Task<Canvas?> GetCanvasByIdAsync(Guid id);
         Task<List<Canvas>> GetCanvasesForNoteAsync(Guid noteId);
         Task<bool> UpdateCanvasAsync(Guid id, string name);
-        Task<bool> DeleteCanvasAsync(Guid id, string userId);
+        Task<bool> DeleteCanvasAsync(Guid id);
         Task<bool> AddUserToCanvasAsync(Guid canvasId, UserProfile user);
     }
 }

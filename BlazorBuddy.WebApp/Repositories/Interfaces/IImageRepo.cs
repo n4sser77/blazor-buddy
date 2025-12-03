@@ -8,6 +8,6 @@ namespace BlazorBuddy.WebApp.Repositories.Interfaces
         Task<Image> CreateImageAsync(byte[] imageData, string fileName, string contentType, UserProfile owner, Guid noteId);
         Task<Image?> GetImageByIdAsync(Guid imageId);
         Task<List<Image>> GetImagesForNoteAsync(Guid noteId);
-        Task<bool> DeleteImageAsync(Guid imageId, string userId);
+        Task<bool> DeleteImageAsync(Guid imageId);
     }
 }

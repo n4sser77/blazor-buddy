@@ -21,6 +21,9 @@ namespace BlazorBuddy.WebApp.Repositories
                 .Include(n => n.Images)
                 .FirstOrDefaultAsync(n => n.Id == noteId);
 
+            if (note == null)
+                throw new ArgumentException($"Note with id {noteId} not found");
+
             var image = new Image()
             {
                 Title = fileName,
@@ -51,13 +54,11 @@ namespace BlazorBuddy.WebApp.Repositories
             return note?.Images ?? new List<Image>();
         }
 
-        public async Task<bool> DeleteImageAsync(Guid imageId, string userId)
+        public async Task<bool> DeleteImageAsync(Guid imageId)
         {
-            var image = await _context.Images
-                .Include(i => i.Owner)
-                .FirstOrDefaultAsync(i => i.Id == imageId);
+            var image = await _context.Images.FindAsync(imageId);
 
-            if (image == null || image.Owner.Id != userId)
+            if (image == null)
                 return false;
 
             _context.Images.Remove(image);

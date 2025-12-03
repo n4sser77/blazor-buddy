@@ -21,6 +21,9 @@ namespace BlazorBuddy.WebApp.Repositories
                 .Include(n => n.Canvases)
                 .FirstOrDefaultAsync(n => n.Id == noteId);
 
+            if (note == null)
+                throw new ArgumentException($"Note with id {noteId} not found");
+
             var canvas = new Canvas()
             {
                 Title = name,
@@ -64,13 +67,11 @@ namespace BlazorBuddy.WebApp.Repositories
             return true;
         }
 
-        public async Task<bool> DeleteCanvasAsync(Guid id, string userId)
+        public async Task<bool> DeleteCanvasAsync(Guid id)
         {
-            var canvas = await _context.Canvases
-                .Include(c => c.Owner)
-                .FirstOrDefaultAsync(c => c.Id == id);
+            var canvas = await _context.Canvases.FindAsync(id);
 
-            if (canvas == null || canvas.Owner.Id != userId)
+            if (canvas == null)
                 return false;
 
             _context.Canvases.Remove(canvas);

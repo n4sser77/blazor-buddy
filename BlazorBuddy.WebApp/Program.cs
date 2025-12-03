@@ -61,6 +61,8 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<IChatEventBroker, ChatEventBroker>();
 builder.Services.AddScoped<IFriendlistRepo, FriendListRepo>();
 builder.Services.AddScoped<IFriendListService, FriendListService>();
+builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<ICanvasService, CanvasService>();
 
 
 var app = builder.Build();
