@@ -3,6 +3,7 @@ using BlazorBuddy.Models;
 using BlazorBuddy.WebApp.Data;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace BlazorBuddy.WebApp.Services
 {
     public class UserProfileRepo : IUserRepo

@@ -60,6 +60,10 @@ builder.Services.AddScoped<IUserRepo, UserProfileRepo>();
 builder.Services.AddScoped<IChatRepo, ChatRepo>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<IChatEventBroker, ChatEventBroker>();
+builder.Services.AddScoped<IFriendShipRepo, FriendShipRepo>();
+builder.Services.AddScoped<IFriendShipService, FriendShipService>();
+builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<ICanvasService, CanvasService>();
 
 
 var app = builder.Build();

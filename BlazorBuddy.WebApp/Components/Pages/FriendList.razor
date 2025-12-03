@@ -1,0 +1,247 @@
+@page "/friendlist"
+@rendermode InteractiveServer
+@using BlazorBuddy.Core.Interfaces
+@using BlazorBuddy.Models
+@using BlazorBuddy.WebApp.Components.Modules
+@using BlazorBuddy.WebApp.Services.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IFriendShipService FriendService
+@inject IUserRepo UserRepo
+@attribute [Authorize]
+
+<PageTitle>Friend List</PageTitle>
+
+<div class="friendlist-layout">
+
+    <div class="friends-column">
+        <div class="sidebar-header">
+            <h3>Vänlista</h3>
+            <button class="btn-icon" @onclick="() => AddFriendDrawer?.Open()" title="Lägg till vän">+</button>
+        </div>
+
+        <div class="group-list">
+            @if (!AllUsers.Any())
+            {
+                <div class="empty-text">Inga vänner än.</div>
+            }
+            else
+            {
+                @foreach (var user in AllUsers)
+                {
+                    <div class="group-item">
+                        <div class="group-avatar">
+                            @GetInitials(user.DisplayName)
+                        </div>
+                        <div class="group-info">
+                            <span class="group-name">@user.DisplayName</span>
+                            <span class="group-last-msg">@user.Username</span>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="user-profile-section">
+            <div class="user-avatar">Me</div>
+            <div class="user-name">@(CurrentUserProfile?.DisplayName ?? Username)</div>
+        </div>
+    </div>
+
+    <div class="requests-column">
+        <div class="sidebar-header">
+            <h3>Skickade förfrågningar</h3>
+        </div>
+
+        <div class="group-list">
+            @if (SentRequests == null || !SentRequests.Any())
+            {
+                <div class="empty-text">Inga skickade förfrågningar.</div>
+            }
+            else
+            {
+                @foreach (var request in SentRequests)
+                {
+                    <div class="group-item">
+                        <div class="group-avatar">
+                            @GetInitials(request.DisplayName)
+                        </div>
+                        <div class="group-info">
+                            <span class="group-name">@request.DisplayName</span>
+                            <span class="group-last-msg">Väntar...</span>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="requests-column">
+        <div class="sidebar-header">
+            <h3>Mottagna förfrågningar</h3>
+        </div>
+
+        <div class="group-list">
+            @if (ReceivedRequests == null || !ReceivedRequests.Any())
+            {
+                <div class="empty-text">Inga mottagna förfrågningar.</div>
+            }
+            else
+            {
+                @foreach (var request in ReceivedRequests)
+                {
+                    <div class="group-item">
+                        <div class="group-avatar">
+                            @GetInitials(request.DisplayName)
+                        </div>
+                        <div class="group-info">
+                            <span class="group-name">@request.DisplayName</span>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                <button class="btn-accept" @onclick="() => AcceptRequest(request.Id)">✓</button>
+                                <button class="btn-decline" @onclick="() => DeclineRequest(request.Id)">✗</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+</div>
+
+<Drawer @ref="AddFriendDrawer" Title="Lägg till vän">
+    <Body>
+        <div style="padding: 1rem;">
+            <input type="text" 
+                   class="search-input" 
+                   @bind="SearchQuery" 
+                   @bind:event="oninput"
+                   placeholder="Sök användare..." />
+
+            <div style="margin-top: 1rem;">
+                @if (FilteredUsers == null || !FilteredUsers.Any())
+                {
+                    <div class="empty-text">Inga användare hittades.</div>
+                }
+                else
+                {
+                    @foreach (var user in FilteredUsers)
+                    {
+                        <div class="user-row">
+                            <div class="group-avatar">
+                                @GetInitials(user.DisplayName)
+                            </div>
+                            <div style="flex: 1; margin-left: 0.5rem;">
+                                <div style="font-weight: 600;">@user.DisplayName</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">@user.Username</div>
+                            </div>
+                            <button class="btn-secondary" @onclick="() => SendFriendRequest(user.Id)">Skicka förfrågan</button>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </Body>
+    <Footer>
+        <button class="btn-secondary" @onclick="() => AddFriendDrawer?.Close()">Stäng</button>
+    </Footer>
+</Drawer>
+
+@code {
+    private List<UserProfile> AllUsers = []; 
+    private List<UserProfile> SentRequests = [];
+    private List<UserProfile> ReceivedRequests = [];
+    private List<UserProfile> AllUsersCache = [];
+    private string? CurrentUserId;
+    private string? Username;
+    private UserProfile? CurrentUserProfile;
+    private string SearchQuery = "";
+    private Drawer? AddFriendDrawer;
+
+    private List<UserProfile> FilteredUsers
+    {
+        get
+        {
+            var excludedIds = new HashSet<string>();
+            if (CurrentUserId != null) excludedIds.Add(CurrentUserId);
+            foreach (var user in AllUsers) excludedIds.Add(user.Id);
+            foreach (var user in SentRequests) excludedIds.Add(user.Id);
+            foreach (var user in ReceivedRequests) excludedIds.Add(user.Id);
+
+            var availableUsers = AllUsersCache.Where(u => !excludedIds.Contains(u.Id));
+
+            if (!string.IsNullOrWhiteSpace(SearchQuery))
+            {
+                availableUsers = availableUsers.Where(u => 
+                    u.DisplayName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    u.Username.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)
+                );
+            }
+
+            return availableUsers.ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            CurrentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            Username = user.Identity.Name;
+        }
+
+        if (CurrentUserId is null) return;
+        
+        CurrentUserProfile = await UserRepo.GetUserById(CurrentUserId);
+        AllUsersCache = await UserRepo.GetAllUsers();
+        
+        AllUsers = await FriendService.GetFriendsAsync(CurrentUserId);
+        ReceivedRequests = await FriendService.GetReceivedRequestsAsync(CurrentUserId);
+        SentRequests = await FriendService.GetSentRequestsAsync(CurrentUserId);
+    }
+
+    private async Task AcceptRequest(string userId)
+    {
+        if (CurrentUserId == null) return;
+
+        var success = await FriendService.AcceptRequestAsync(CurrentUserId, userId);
+        if (success)
+        {
+            AllUsers = await FriendService.GetFriendsAsync(CurrentUserId);
+            ReceivedRequests = await FriendService.GetReceivedRequestsAsync(CurrentUserId);
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeclineRequest(string userId)
+    {
+        if (CurrentUserId == null) return;
+
+        var success = await FriendService.DeclineRequestAsync(CurrentUserId, userId);
+        if (success)
+        {
+            ReceivedRequests = await FriendService.GetReceivedRequestsAsync(CurrentUserId);
+            StateHasChanged();
+        }
+    }
+
+    private async Task SendFriendRequest(string friendId)
+    {
+        if (CurrentUserId == null) return;
+
+        var success = await FriendService.SendFriendRequestAsync(CurrentUserId, friendId);
+        if (success)
+        {
+            SentRequests = await FriendService.GetSentRequestsAsync(CurrentUserId);
+            AddFriendDrawer?.Close();
+            StateHasChanged();
+        }
+    }
+
+    private string GetInitials(string name) =>
+        string.IsNullOrEmpty(name) ? "?" : name.Substring(0, Math.Min(2, name.Length)).ToUpper();
+}

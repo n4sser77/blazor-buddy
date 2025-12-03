@@ -1,3 +1,4 @@
+using BlazorBuddy.Core.Models;
 using System;
 
 namespace BlazorBuddy.Models
@@ -11,6 +12,12 @@ namespace BlazorBuddy.Models
 
         public List<ChatGroup> ChatGroups { get; set; } = [];
         public List<StudyPage> StudyPages { get; set; } = [];
+        public List<FriendShip> FriendShips { get; set; } = [];
+
+        public UserProfile()
+        {
+
+        }
 
 
 

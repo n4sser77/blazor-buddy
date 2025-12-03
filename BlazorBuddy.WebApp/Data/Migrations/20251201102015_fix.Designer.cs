@@ -4,6 +4,7 @@ using BlazorBuddy.WebApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorBuddy.WebApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251201102015_fix")]
+    partial class fix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,7 +49,7 @@ namespace BlazorBuddy.WebApp.Migrations
                     b.ToTable("Canvases");
                 });
 
-            modelBuilder.Entity("BlazorBuddy.Core.Models.FriendShip", b =>
+            modelBuilder.Entity("BlazorBuddy.Core.Models.FriendList", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -73,7 +76,7 @@ namespace BlazorBuddy.WebApp.Migrations
 
                     b.HasIndex("UserProfileId");
 
-                    b.ToTable("FriendShips");
+                    b.ToTable("FriendLists");
                 });
 
             modelBuilder.Entity("BlazorBuddy.Core.Models.Image", b =>
@@ -548,10 +551,10 @@ namespace BlazorBuddy.WebApp.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("BlazorBuddy.Core.Models.FriendShip", b =>
+            modelBuilder.Entity("BlazorBuddy.Core.Models.FriendList", b =>
                 {
                     b.HasOne("BlazorBuddy.Models.UserProfile", null)
-                        .WithMany("FriendShips")
+                        .WithMany("FriendLists")
                         .HasForeignKey("UserProfileId");
                 });
 
@@ -757,7 +760,7 @@ namespace BlazorBuddy.WebApp.Migrations
 
             modelBuilder.Entity("BlazorBuddy.Models.UserProfile", b =>
                 {
-                    b.Navigation("FriendShips");
+                    b.Navigation("FriendLists");
 
                     b.Navigation("StudyPages");
                 });
