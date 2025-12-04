@@ -1,19 +1,381 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@using BlazorBuddy.Models
+@using BlazorBuddy.WebApp.Repositories.Interfaces
 @using BlazorBuddy.WebApp.Components.Modules
-@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
-@attribute [Authorize]
+@inject IStudyPageRepo StudyPageRepo
+@inject INoteRepo NoteRepo
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Home</PageTitle>
-
-<h1>Welcome</h1>
+<PageTitle>Home - BlazorBuddy</PageTitle>
 
 <AuthorizeView>
     <Authorized>
-        <p>Hello @context.User.Identity?.Name!</p>
-        <ProfileRegistration />
+      
+        <div class="home-container">
+
+            <div class="search-section-home">
+                <div class="search-wrapper">
+                    <input class="search-input-large"
+                           type="text"
+                           placeholder="🔍 Search your study pages and notes..."
+                           @oninput="OnSearchInput"
+                           @onfocus="OnSearchFocus"
+                           @onblur="OnSearchBlur"
+                           value="@searchQuery" />
+
+                    @if (showSearchResults && !string.IsNullOrWhiteSpace(searchQuery))
+                    {
+                        <div class="search-results-dropdown">
+                            @if (isSearching)
+                            {
+                                <div class="search-loading">Searching...</div>
+                            }
+                            else if (!searchResultStudyPages.Any() && !searchResultNotes.Any())
+                            {
+                                <div class="no-results">No results found for "@searchQuery"</div>
+                            }
+                            else
+                            {
+                                @if (searchResultStudyPages.Any())
+                                {
+                                    <div class="search-category">
+                                        <h4>Study Pages</h4>
+                                        @foreach (var studyPage in searchResultStudyPages.Take(5))
+                                        {
+                                            <div class="search-result-item" @onclick="() => NavigateToStudyPage(studyPage.Id)">
+                                                <div class="result-icon">📚</div>
+                                                <div class="result-content">
+                                                    <div class="result-title">@studyPage.Title</div>
+                                                    <div class="result-meta">@studyPage.Notes.Count notes</div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                @if (searchResultNotes.Any())
+                                {
+                                    <div class="search-category">
+                                        <h4>Notes</h4>
+                                        @foreach (var note in searchResultNotes.Take(5))
+                                        {
+                                            <div class="search-result-item" @onclick="() => NavigateToNote(note)">
+                                                <div class="result-icon">📝</div>
+                                                <div class="result-content">
+                                                    <div class="result-title">@note.Title</div>
+                                                    <div class="result-preview">@GetContentPreview(note.Content)</div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="welcome-section">
+                <h1>Welcome back, @userName! 👋</h1>
+                <p class="welcome-subtitle">Here's what you've been working on</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-content">
+                        <div class="stat-number">@totalStudyPages</div>
+                        <div class="stat-label">Study Pages</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-content">
+                        <div class="stat-number">@totalNotes</div>
+                        <div class="stat-label">Total Notes</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚒️</div>
+                    <div class="stat-content">
+                        <div class="stat-number">@recentlyViewedNotes.Count</div>
+                        <div class="stat-label">Under Construction</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recent-section">
+                <div class="section-header">
+                    <h2>Recently Viewed</h2>
+                    @if (recentlyViewedNotes.Any())
+                    {
+                        <button class="btn-text" @onclick="ClearRecent">Clear All</button>
+                    }
+                </div>
+
+                @if (!recentlyViewedNotes.Any())
+                {
+                    <div class="empty-state">
+                        <p class="text-muted">No recently viewed notes yet. Start exploring your study pages!</p>
+                        <button class="btn btn-primary" @onclick="GoToStudyPages">Browse Study Pages</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="recent-grid">
+                        @foreach (var item in recentlyViewedNotes.Take(6))
+                        {
+                            <div class="recent-card" @onclick="() => NavigateToNote(item.Note)">
+                                <div class="recent-card-header">
+                                    <span class="badge">@item.StudyPageTitle</span>
+                                    <span class="recent-time">@GetTimeAgo(item.ViewedAt)</span>
+                                </div>
+                                <h3>@item.Note.Title</h3>
+                                <p class="content-preview">@GetContentPreview(item.Note.Content)</p>
+                                <div class="card-footer">
+                                    <span class="meta-info">🔗 @item.Note.Links.Count links</span>
+                                    <span class="meta-info">🏷️ @item.Note.Tags.Count tags</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            @* <div class="quick-actions">
+                <button class="action-btn" @onclick="GoToStudyPages">
+                    <span class="action-icon">📚</span>
+                    <span>View All Study Pages</span>
+                </button>
+            </div> *@
+        </div>
     </Authorized>
+
     <NotAuthorized>
-        <p>You are not authorized. Please <a href="Identity/Account/Login">log in</a>.</p>
+        <div class="landing-container">
+            <div class="landing-hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Welcome to BlazorBuddy 📚</h1>
+                    <p class="hero-subtitle">Your personal study companion for organizing notes and knowledge</p>
+
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">📝</div>
+                            <h3>Organize Your Notes</h3>
+                            <p>Create study pages and organize your notes with tags and links</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔍</div>
+                            <h3>Powerful Search</h3>
+                            <p>Quickly find any note or study page with instant search</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">✍️</div>
+                            <h3>Markdown Editor</h3>
+                            <p>Write formatted notes with our built-in markdown editor</p>
+                        </div>
+                    </div>
+
+                    <div class="cta-section">
+                        <h2>Get Started Today</h2>
+                        <p class="cta-text">Join BlazorBuddy and start organizing your study materials</p>
+                        <div class="cta-buttons">
+                            <a href="Account/Register" class="btn btn-primary-large">
+                                Create Account
+                            </a>
+                            <a href="Account/Login" class="btn btn-secondary-large">
+                                Sign In
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>How to Get Started:</h3>
+                        <ol class="steps-list">
+                            <li>Click <strong>"Create Account"</strong> to register a new account</li>
+                            <li>Or click <strong>"Sign In"</strong> if you already have an account</li>
+                            <li>Once logged in, create your first study page</li>
+                            <li>Start adding notes and organizing your knowledge!</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
     </NotAuthorized>
 </AuthorizeView>
+
+<style>
+    
+</style>
+
+@code {
+    private string currentUserId = "";
+    private string userName = "User";
+    private string searchQuery = "";
+    private bool showSearchResults = false;
+    private bool isSearching = false;
+    private bool isInitialized = false;
+
+    private List<StudyPage> allStudyPages = new();
+    private List<NoteDocument> allNotes = new();
+    private List<StudyPage> searchResultStudyPages = new();
+    private List<NoteDocument> searchResultNotes = new();
+
+    private List<RecentlyViewedItem> recentlyViewedNotes = new();
+
+    private int totalStudyPages => allStudyPages.Count;
+    private int totalNotes => allNotes.Count;
+
+    private CancellationTokenSource? searchCts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+            userName = user.Identity.Name ?? "User";
+
+            await LoadData();
+            LoadRecentlyViewed();
+        }
+
+        isInitialized = true;
+    }
+
+    private async Task LoadData()
+    {
+        allStudyPages = await StudyPageRepo.GetUserStudyPagesAsync(currentUserId);
+
+        allNotes = new List<NoteDocument>();
+
+        foreach (var studyPage in allStudyPages)
+        {
+            var notes = await NoteRepo.GetNotesForStudyPageAsync(studyPage.Id);
+            allNotes.AddRange(notes);
+        }
+    }
+
+    private void OnSearchFocus() => showSearchResults = true;
+
+    private async Task OnSearchBlur()
+    {
+        await Task.Delay(200);
+        showSearchResults = false;
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        searchQuery = e.Value?.ToString() ?? "";
+
+        searchCts?.Cancel();
+        searchCts = new CancellationTokenSource();
+        var token = searchCts.Token;
+
+        try
+        {
+            await Task.Delay(300, token); 
+            await PerformSearch();
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private async Task PerformSearch()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            searchResultStudyPages.Clear();
+            searchResultNotes.Clear();
+            return;
+        }
+
+        isSearching = true;
+        await Task.Delay(100); 
+
+        searchResultStudyPages = allStudyPages
+            .Where(sp => sp.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                        sp.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        searchResultNotes = allNotes
+            .Where(n => n.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                       n.Content.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        isSearching = false;
+        StateHasChanged();
+    }
+
+    private void NavigateToStudyPage(Guid studyPageId) => NavigationManager.NavigateTo($"/studypages/{studyPageId}/notes");
+
+    private void NavigateToNote(NoteDocument note)
+    {
+        var studyPage = allStudyPages.FirstOrDefault(sp => sp.Notes.Any(n => n.Id == note.Id));
+        if (studyPage != null)
+        {
+            AddToRecentlyViewed(note, studyPage);
+            NavigationManager.NavigateTo($"/studypages/{studyPage.Id}/notes/{note.Id}");
+        }
+    }
+
+    private void AddToRecentlyViewed(NoteDocument note, StudyPage studyPage)
+    {
+        recentlyViewedNotes.RemoveAll(r => r.Note.Id == note.Id);
+
+        recentlyViewedNotes.Insert(0, new RecentlyViewedItem
+        {
+            Note = note,
+            StudyPageTitle = studyPage.Title,
+            ViewedAt = DateTime.Now
+        });
+
+        if (recentlyViewedNotes.Count > 10)
+        {
+            recentlyViewedNotes.RemoveRange(10, recentlyViewedNotes.Count - 10);
+        }
+    }
+
+    private void LoadRecentlyViewed() => recentlyViewedNotes = new();
+
+    private void ClearRecent() => recentlyViewedNotes.Clear();
+
+    private string GetContentPreview(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return "No content yet...";
+
+        return content.Length > 100
+            ? content.Substring(0, 100) + "..."
+            : content;
+    }
+
+    private string GetTimeAgo(DateTime viewedAt)
+    {
+        var timeSpan = DateTime.Now - viewedAt;
+
+        if (timeSpan.TotalMinutes < 1)
+            return "Just now";
+        if (timeSpan.TotalMinutes < 60)
+            return $"{(int)timeSpan.TotalMinutes}m ago";
+        if (timeSpan.TotalHours < 24)
+            return $"{(int)timeSpan.TotalHours}h ago";
+        if (timeSpan.TotalDays < 7)
+            return $"{(int)timeSpan.TotalDays}d ago";
+
+        return viewedAt.ToString("MMM dd");
+    }
+
+    private void GoToStudyPages() => NavigationManager.NavigateTo("/studypages");
+
+    private class RecentlyViewedItem
+    {
+        public NoteDocument Note { get; set; } = null!;
+        public string StudyPageTitle { get; set; } = "";
+        public DateTime ViewedAt { get; set; }
+    }
+}
