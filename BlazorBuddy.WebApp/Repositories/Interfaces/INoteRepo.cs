@@ -13,5 +13,7 @@ namespace BlazorBuddy.WebApp.Repositories.Interfaces
         Task<bool> RemoveLinkFromNoteAsync(Guid noteId, Guid linkId);
         Task<bool> AddTagToNoteAsync(Guid noteID, Guid tagId);
         Task<bool> RemoveTagFromNoteAsync(Guid noteID, Guid tagId);
+
+        Task UpdateVisitedAtAsync(Guid noteId, DateTime newDate);
     }
 }

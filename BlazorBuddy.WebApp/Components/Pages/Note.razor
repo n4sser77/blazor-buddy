@@ -91,6 +91,8 @@ else
     protected override async Task OnInitializedAsync()
     {
         CurrentNote = await NoteRepo.GetNoteByIdAsync(NoteId);
+       await NoteRepo.UpdateVisitedAtAsync(NoteId, DateTime.UtcNow);
+       
 
         if (CurrentNote == null)
         {
