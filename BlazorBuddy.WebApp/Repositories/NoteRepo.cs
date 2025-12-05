@@ -160,5 +160,15 @@ namespace BlazorBuddy.WebApp.Repositories
 
             return true;
         }
+
+        public async Task UpdateVisitedAtAsync(Guid noteId, DateTime newDate)
+        {
+            var note = await _context.NoteDocuments.FindAsync(noteId);
+            if (note != null)
+            {
+                note.VisitedAt = newDate;
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

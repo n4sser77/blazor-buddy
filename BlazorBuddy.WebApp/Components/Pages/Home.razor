@@ -13,7 +13,7 @@
 
 <AuthorizeView>
     <Authorized>
-      
+
         <div class="home-container">
 
             <div class="search-section-home">
@@ -106,7 +106,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="recent-section">
                 <div class="section-header">
                     <h2>Recently Viewed</h2>
@@ -128,16 +128,16 @@
                     <div class="recent-grid">
                         @foreach (var item in recentlyViewedNotes.Take(6))
                         {
-                            <div class="recent-card" @onclick="() => NavigateToNote(item.Note)">
+                            <div class="recent-card" @onclick="() => NavigateToNote(item)">
                                 <div class="recent-card-header">
-                                    <span class="badge">@item.StudyPageTitle</span>
-                                    <span class="recent-time">@GetTimeAgo(item.ViewedAt)</span>
+                                    <span class="badge">@item.Title</span>
+                                    <span class="recent-time">@GetTimeAgo(item.VisitedAt)</span>
                                 </div>
-                                <h3>@item.Note.Title</h3>
-                                <p class="content-preview">@GetContentPreview(item.Note.Content)</p>
+                                <h3>@item.Title</h3>
+                                <p class="content-preview">@GetContentPreview(item.Content)</p>
                                 <div class="card-footer">
-                                    <span class="meta-info">🔗 @item.Note.Links.Count links</span>
-                                    <span class="meta-info">🏷️ @item.Note.Tags.Count tags</span>
+                                    <span class="meta-info">🔗 @item.Links.Count links</span>
+                                    <span class="meta-info">🏷️ @item.Tags.Count tags</span>
                                 </div>
                             </div>
                         }
@@ -208,7 +208,7 @@
 </AuthorizeView>
 
 <style>
-    
+
 </style>
 
 @code {
@@ -224,7 +224,7 @@
     private List<StudyPage> searchResultStudyPages = new();
     private List<NoteDocument> searchResultNotes = new();
 
-    private List<RecentlyViewedItem> recentlyViewedNotes = new();
+    private List<NoteDocument> recentlyViewedNotes = new();
 
     private int totalStudyPages => allStudyPages.Count;
     private int totalNotes => allNotes.Count;
@@ -242,7 +242,7 @@
             userName = user.Identity.Name ?? "User";
 
             await LoadData();
-            LoadRecentlyViewed();
+
         }
 
         isInitialized = true;
@@ -258,6 +258,7 @@
         {
             var notes = await NoteRepo.GetNotesForStudyPageAsync(studyPage.Id);
             allNotes.AddRange(notes);
+            LoadRecentlyViewed(studyPage);
         }
     }
 
@@ -279,7 +280,7 @@
 
         try
         {
-            await Task.Delay(300, token); 
+            await Task.Delay(300, token);
             await PerformSearch();
         }
         catch (TaskCanceledException) { }
@@ -295,7 +296,7 @@
         }
 
         isSearching = true;
-        await Task.Delay(100); 
+        await Task.Delay(100);
 
         searchResultStudyPages = allStudyPages
             .Where(sp => sp.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
@@ -318,29 +319,25 @@
         var studyPage = allStudyPages.FirstOrDefault(sp => sp.Notes.Any(n => n.Id == note.Id));
         if (studyPage != null)
         {
-            AddToRecentlyViewed(note, studyPage);
+            LoadRecentlyViewed(studyPage);
             NavigationManager.NavigateTo($"/studypages/{studyPage.Id}/notes/{note.Id}");
         }
     }
 
-    private void AddToRecentlyViewed(NoteDocument note, StudyPage studyPage)
+    private List<NoteDocument> LoadRecentlyViewed(StudyPage studyPage)
     {
-        recentlyViewedNotes.RemoveAll(r => r.Note.Id == note.Id);
 
-        recentlyViewedNotes.Insert(0, new RecentlyViewedItem
-        {
-            Note = note,
-            StudyPageTitle = studyPage.Title,
-            ViewedAt = DateTime.Now
-        });
+        recentlyViewedNotes.AddRange(
 
-        if (recentlyViewedNotes.Count > 10)
-        {
-            recentlyViewedNotes.RemoveRange(10, recentlyViewedNotes.Count - 10);
-        }
+        studyPage.RecentNotes()
+        );
+
+        return recentlyViewedNotes;
+
+
     }
 
-    private void LoadRecentlyViewed() => recentlyViewedNotes = new();
+
 
     private void ClearRecent() => recentlyViewedNotes.Clear();
 
@@ -372,10 +369,5 @@
 
     private void GoToStudyPages() => NavigationManager.NavigateTo("/studypages");
 
-    private class RecentlyViewedItem
-    {
-        public NoteDocument Note { get; set; } = null!;
-        public string StudyPageTitle { get; set; } = "";
-        public DateTime ViewedAt { get; set; }
-    }
+
 }

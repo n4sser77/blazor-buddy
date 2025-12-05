@@ -12,5 +12,24 @@ namespace BlazorBuddy.Models
         public List<UserProfile> Users { get; set; } = [];
         public required UserProfile Owner { get; set; }
 
+        public DateTime VisitedAt { get; set; } = DateTime.UtcNow;
+
+        public List<NoteDocument> RecentNotes()
+        {
+            var sortedNotes =
+
+            Notes
+                 .OrderByDescending(n => n.VisitedAt)
+                 .Take(5)
+                 .ToList();
+
+            return sortedNotes;
+
+        }
+
+
+
     }
+
+
 }
