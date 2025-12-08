@@ -53,7 +53,7 @@ git clone --recursive https://github.com/n4sser77/blazor-buddy.git
 ```
 
 **Option 2: Initialize submodules after cloning**
-if you already cloned without the submodules
+If you already cloned without the submodules
 you can run the comman below to get and update the submodules
 ```bash
 git clone https://github.com/n4sser77/blazor-buddy.git
