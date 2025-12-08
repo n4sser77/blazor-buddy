@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace BlazorBuddy.Models
 {
-    public record class ChatGroup
+    public class ChatGroup
     {
 
         public Guid Id { get; set; }
@@ -13,19 +13,17 @@ namespace BlazorBuddy.Models
         public List<UserProfile> Users { get; set; } = [];
         public List<ChatMessage> Messages { get; set; } = [];
 
-        public ChatGroup AddUser(UserProfile newUser)
+        public void AddUser(UserProfile newUser)
         {
-            if (Users.Any(u => u.Id == newUser.Id))
+            if (IsUserInGroup(newUser.Id))
                 throw new InvalidOperationException("User already in group.");
 
-            return this with
-            {
-                Users = [.. Users, newUser]
-            };
+            Users.Add(newUser);
+            newUser.ChatGroups.Add(this);
 
         }
 
-        public ChatGroup AddMessage(UserProfile user, string message)
+        public void AddMessage(UserProfile user, string message)
         {
             var msg = new ChatMessage
             {
@@ -33,10 +31,8 @@ namespace BlazorBuddy.Models
                 FromUser = user,
             };
 
-            return this with
-            {
-                Messages = [.. Messages, msg]
-            };
+            Messages.Add(msg);
+
         }
         public bool IsUserInGroup(string userId) => Users.Any(u => u.Id == userId);
 
