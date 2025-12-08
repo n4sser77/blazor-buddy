@@ -1,6 +1,6 @@
 ﻿using BlazorBuddy.Models;
 
-namespace BlazorBuddy.WebApp.Services
+namespace BlazorBuddy.WebApp.Services.Interfaces
 {
     public interface IChatEventBroker
     {

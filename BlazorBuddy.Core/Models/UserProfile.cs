@@ -19,6 +19,18 @@ namespace BlazorBuddy.Models
 
         }
 
+        public void LeaveChat(ChatGroup chatGroup)
+        {
+            if (!chatGroup.IsUserInGroup(this.Id))
+                throw new ArgumentException("Cannot remove user from chat because user is not in chat group");
+            var chat = ChatGroups.FirstOrDefault(c => c.Id == chatGroup.Id);
+            if (chat == null)
+                throw new ArgumentException($"The user doesn't seam to be a member of group {chatGroup.Id}");
+
+            chat.Users.Remove(this);
+            ChatGroups.Remove(chat);
+
+        }
 
 
     }

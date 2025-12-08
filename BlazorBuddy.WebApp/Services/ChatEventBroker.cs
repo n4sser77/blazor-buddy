@@ -1,4 +1,5 @@
 ﻿using BlazorBuddy.Models;
+using BlazorBuddy.WebApp.Services.Interfaces;
 
 namespace BlazorBuddy.WebApp.Services;
 

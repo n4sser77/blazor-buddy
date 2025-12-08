@@ -31,9 +31,9 @@ public class ChatService : IChatService
         if (user is null) throw new ArgumentNullException(nameof(user));
 
 
-        var updatedGroup = group.AddUser(user);
+        group.AddUser(user);
 
-        updatedGroup = await _chatRepo.UpdateChatGroup(updatedGroup);
+        var updatedGroup = await _chatRepo.UpdateChatGroup(group);
         if (updatedGroup is null) throw new Exception("Failed to update group");
 
         _broker.NotifyStateChanged(updatedGroup);
@@ -48,9 +48,9 @@ public class ChatService : IChatService
         var user = await _userRepo.GetUserById(userId)
             ?? throw new ArgumentNullException("User is null");
 
-        var updatedGroup = group.AddMessage(user, message);
+        group.AddMessage(user, message);
 
-        updatedGroup = await _chatRepo.UpdateChatGroup(updatedGroup)
+        var updatedGroup = await _chatRepo.UpdateChatGroup(group)
                          ?? throw new Exception("Failed to update group");
 
         _broker.NotifyStateChanged(updatedGroup);
@@ -78,5 +78,20 @@ public class ChatService : IChatService
             ?? throw new ArgumentNullException("Group is null");
         _broker.NotifyStateChanged(chat);
         return chat;
+    }
+
+    public async Task RemoveUser(string userId, string chatId)
+    {
+        var chat = await _chatRepo.GetChatGroupById(Guid.Parse(chatId));
+        if (chat is null)
+            throw new Exception("The chat does not exist or the id is incorrect");
+
+        var user = await _userRepo.GetUserById(userId);
+        if (user is null)
+            throw new Exception("The user does not exist or the id is incorrect");
+
+        user.LeaveChat(chat);
+
+        _broker.NotifyStateChanged(chat);
     }
 }
