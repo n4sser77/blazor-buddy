@@ -7,6 +7,7 @@ namespace BlazorBuddy.WebApp.Services.Interfaces
         Task<List<UserProfile>> GetFriendsAsync(string userId);
         Task<List<UserProfile>> GetReceivedRequestsAsync(string userId);
         Task<List<UserProfile>> GetSentRequestsAsync(string userId);
+        Task<List<UserProfile>> GetAvailableUsersForFriendRequestAsync(string userId);
         Task<bool> SendFriendRequestAsync(string userId, string friendId);
         Task<bool> AcceptRequestAsync(string userId, string friendId);
         Task<bool> DeclineRequestAsync(string userId, string friendId);

@@ -1,6 +1,12 @@
 @page "/canvas"
 @rendermode InteractiveServer
+@using BlazorBuddy.WebApp.Services.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IJSRuntime JS
+@inject ICanvasService CanvasService
+@inject AuthenticationStateProvider AuthStateProvider
+@attribute [Authorize]
 
 <PageTitle>Canvas</PageTitle>
 
@@ -36,8 +42,15 @@
         
         <div class="control-group">
             <button @onclick="ClearCanvas" class="btn btn-danger">Sudda</button>
-            <button @onclick="SaveDrawing" class="btn btn-primary">Spara ritning</button>
+            <button @onclick="SaveDrawing" class="btn btn-primary" disabled="@isSaving">@(isSaving ? "Sparar..." : "Spara ritning")</button>
         </div>
+        
+        @if (!string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="alert @(statusMessage.Contains("sparad") ? "alert-success" : "alert-danger")">
+                @statusMessage
+            </div>
+        }
     </div>
 
     <canvas @ref="canvasRef" class="drawing-canvas"></canvas>
@@ -48,6 +61,16 @@
     private IJSObjectReference? module;
     private string currentTool = "draw";
     private int fontSize = 16;
+    private string? currentUserId;
+    private bool isSaving = false;
+    private string statusMessage = "";
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    }
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -83,10 +106,35 @@
 
     private async Task SaveDrawing()
     {
-        if (module != null)
+        if (module == null || string.IsNullOrEmpty(currentUserId))
+            return;
+        
+        try
         {
-            var imageData = await module.InvokeAsync<string>("getCanvasImage");
-            // här kan man spara imageData till en server eller ladda ner det som en fil
+            isSaving = true;
+            statusMessage = "";
+            StateHasChanged();
+            
+            var canvasData = await module.InvokeAsync<string>("getCanvasImage");
+            
+            // Skapa canvas i databasen - här använder vi ett default noteId (Guid.Empty)
+            // Du kan senare utöka detta så användaren kan välja vilken note canvas ska tillhöra
+            var canvasName = $"Canvas {DateTime.Now:yyyy-MM-dd HH:mm}";
+            var savedCanvas = await CanvasService.CreateCanvasAsync(canvasName, currentUserId, Guid.Empty);
+            
+            // Nu kan du uppdatera canvas med canvas data
+            // Du behöver eventuellt lägga till en metod i service/repo för att uppdatera CanvasData
+            
+            statusMessage = $"Ritning sparad! (ID: {savedCanvas.Id})";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Fel vid sparande: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
         }
     }
     
