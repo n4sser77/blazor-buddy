@@ -1,6 +1,6 @@
 # BlazorBuddy
 
-BlazorBuddy is a real-time collaborative study companion application built with Blazor Server and .NET 10.
+BlazorBuddy is a real-time collaborative study companion application built with Blazor Server and .NET 10. Users can write and categorize markdown notes, chat with other users and sketch on a canvas.
 
 ## System Architecture
 
