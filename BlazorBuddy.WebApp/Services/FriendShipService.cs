@@ -93,5 +93,23 @@ namespace BlazorBuddy.WebApp.Services
 
             return await _friendlistRepo.CheckIfFriendAsync(userId, friendId);
         }
+
+        public async Task<List<UserProfile>> GetAvailableUsersForFriendRequestAsync(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return new List<UserProfile>();
+
+            var allUsers = await _userRepo.GetAllUsers();
+            var friends = await GetFriendsAsync(userId);
+            var sentRequests = await GetSentRequestsAsync(userId);
+            var receivedRequests = await GetReceivedRequestsAsync(userId);
+
+            return allUsers
+                .Where(u => u.Id != userId)
+                .Where(u => !friends.Any(f => f.Id == u.Id))
+                .Where(u => !sentRequests.Any(r => r.Id == u.Id))
+                .Where(u => !receivedRequests.Any(r => r.Id == u.Id))
+                .ToList();
+        }
     }
 }

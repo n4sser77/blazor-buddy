@@ -152,7 +152,7 @@
     private List<UserProfile> AllUsers = []; 
     private List<UserProfile> SentRequests = [];
     private List<UserProfile> ReceivedRequests = [];
-    private List<UserProfile> AllUsersCache = [];
+    private List<UserProfile> AvailableUsers = [];
     private string? CurrentUserId;
     private string? Username;
     private UserProfile? CurrentUserProfile;
@@ -163,23 +163,13 @@
     {
         get
         {
-            var excludedIds = new HashSet<string>();
-            if (CurrentUserId != null) excludedIds.Add(CurrentUserId);
-            foreach (var user in AllUsers) excludedIds.Add(user.Id);
-            foreach (var user in SentRequests) excludedIds.Add(user.Id);
-            foreach (var user in ReceivedRequests) excludedIds.Add(user.Id);
+            if (string.IsNullOrWhiteSpace(SearchQuery))
+                return AvailableUsers;
 
-            var availableUsers = AllUsersCache.Where(u => !excludedIds.Contains(u.Id));
-
-            if (!string.IsNullOrWhiteSpace(SearchQuery))
-            {
-                availableUsers = availableUsers.Where(u => 
-                    u.DisplayName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
-                    u.Username.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)
-                );
-            }
-
-            return availableUsers.ToList();
+            return AvailableUsers.Where(u => 
+                u.DisplayName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
+                u.Username.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
         }
     }
 
@@ -197,11 +187,17 @@
         if (CurrentUserId is null) return;
         
         CurrentUserProfile = await UserRepo.GetUserById(CurrentUserId);
-        AllUsersCache = await UserRepo.GetAllUsers();
-        
+        await LoadFriendData();
+    }
+
+    private async Task LoadFriendData()
+    {
+        if (CurrentUserId is null) return;
+
         AllUsers = await FriendService.GetFriendsAsync(CurrentUserId);
         ReceivedRequests = await FriendService.GetReceivedRequestsAsync(CurrentUserId);
         SentRequests = await FriendService.GetSentRequestsAsync(CurrentUserId);
+        AvailableUsers = await FriendService.GetAvailableUsersForFriendRequestAsync(CurrentUserId);
     }
 
     private async Task AcceptRequest(string userId)
@@ -211,8 +207,7 @@
         var success = await FriendService.AcceptRequestAsync(CurrentUserId, userId);
         if (success)
         {
-            AllUsers = await FriendService.GetFriendsAsync(CurrentUserId);
-            ReceivedRequests = await FriendService.GetReceivedRequestsAsync(CurrentUserId);
+            await LoadFriendData();
             StateHasChanged();
         }
     }
@@ -224,7 +219,7 @@
         var success = await FriendService.DeclineRequestAsync(CurrentUserId, userId);
         if (success)
         {
-            ReceivedRequests = await FriendService.GetReceivedRequestsAsync(CurrentUserId);
+            await LoadFriendData();
             StateHasChanged();
         }
     }
@@ -236,7 +231,7 @@
         var success = await FriendService.SendFriendRequestAsync(CurrentUserId, friendId);
         if (success)
         {
-            SentRequests = await FriendService.GetSentRequestsAsync(CurrentUserId);
+            await LoadFriendData();
             AddFriendDrawer?.Close();
             StateHasChanged();
         }
