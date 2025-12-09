@@ -301,10 +301,11 @@
         InvokeAsync(() =>
      {
          var index = ActiveGroups.FindIndex(g => g.Id == updatedGroup.Id);
+         if (CurrentUserId is null) return;
 
          if (index != -1)
              ActiveGroups[index] = updatedGroup;
-         else
+         else if (updatedGroup.IsUserInGroup(CurrentUserId))
              ActiveGroups.Add(updatedGroup);
 
          if (SelectedGroup?.Id == updatedGroup.Id)
