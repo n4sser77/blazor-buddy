@@ -13,14 +13,17 @@ BlazorBuddy is a real-time collaborative study companion application built with 
 
 This project uses Git Submodules. You must clone recursively or initialize submodules after cloning.
 
-**Option 1: Clone with submodules**
+#### Option 1: Clone with submodules
+
 ```bash
 git clone --recursive https://github.com/n4sser77/blazor-buddy.git
 ```
 
-**Option 2: Initialize submodules after cloning**
+#### Option 2: Initialize submodules after cloning
+
 If you already cloned without the submodules
 You can run the command below to get and update the submodules
+
 ```bash
 git clone https://github.com/n4sser77/blazor-buddy.git
 cd blazor-buddy
@@ -32,10 +35,12 @@ git submodule update --init --recursive
 1. Navigate to the WebApp directory:
 
 2. Run the application:
+
    ```bash
    dotnet run --project BlazorBuddy.WebApp
    ```
-   *By default, the app uses `(localdb)\mssqllocaldb`. Ensure you have it installed or update `appsettings.json` with your connection string.*
+
+      *By default, the app uses `(localdb)\mssqllocaldb`. Ensure you have it installed or update `appsettings.json` with your connection string.*
 
 3. Open your browser and navigate to `https://localhost:7000` (or the port shown in the terminal).
 
@@ -44,9 +49,10 @@ git submodule update --init --recursive
 The solution includes integration tests that verify the application flow using an in-memory database.
 
 Run the tests:
-   ```bash
+
+```bash
    dotnet test
-   ```
+```
 
 ## System Architecture
 
@@ -78,7 +84,9 @@ The application follows a **Monolithic Layered Architecture** using **Blazor Ser
 ### Testability
 
 The architecture is designed with testability in mind:
+
 * **Integration Tests**: The `BlazorBuddy.Test` project uses `WebApplicationFactory` to spin up the app in-memory.
+
 * **Database Abstraction**: The `CustomWebApplicationFactory` replaces the SQL Server provider with an InMemory database, allowing tests to run without external infrastructure dependencies.
 * **Service Isolation**: Services can be unit tested by mocking their repository dependencies.
 
@@ -90,7 +98,7 @@ The architecture is designed with testability in mind:
 
 ## Project Structure
 
-```
+```text
 BlazorBuddy/
  BlazorBuddy.Core/       # Domain Models (POCOs)
  BlazorBuddy.WebApp/     # Main Blazor Server Application

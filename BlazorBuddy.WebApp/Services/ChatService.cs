@@ -10,7 +10,7 @@ namespace BlazorBuddy.WebApp.Services;
 
 public class ChatService : IChatService
 {
-    public List<ChatGroup> ActiveChatGroups { get; set; } = [];
+
     private readonly IChatRepo _chatRepo;
     private readonly IUserRepo _userRepo;
     private readonly IChatEventBroker _broker;
@@ -48,12 +48,11 @@ public class ChatService : IChatService
         var user = await _userRepo.GetUserById(userId)
             ?? throw new ArgumentNullException("User is null");
 
-        group.AddMessage(user, message);
 
-        var updatedGroup = await _chatRepo.UpdateChatGroup(group)
+        var updatedChat = await _chatRepo.AddMessage(group.Id, message, user)
                          ?? throw new Exception("Failed to update group");
 
-        _broker.NotifyStateChanged(updatedGroup);
+        _broker.NotifyStateChanged(updatedChat);
     }
 
     public async Task<ChatGroup> CreateChatGroup(string title, List<UserProfile> members)
@@ -94,4 +93,5 @@ public class ChatService : IChatService
 
         _broker.NotifyStateChanged(chat);
     }
+
 }
