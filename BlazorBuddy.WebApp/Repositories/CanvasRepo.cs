@@ -15,23 +15,16 @@ namespace BlazorBuddy.WebApp.Repositories
             _context = context;
         }
 
-        public async Task<Canvas> CreateCanvasAsync(string name, UserProfile owner, Guid noteId)
+        public async Task<Canvas> CreateCanvasAsync(string name, string canvasData, UserProfile owner)
         {
-            var note = await _context.NoteDocuments
-                .Include(n => n.Canvases)
-                .FirstOrDefaultAsync(n => n.Id == noteId);
-
-            if (note == null)
-                throw new ArgumentException($"Note with id {noteId} not found");
-
             var canvas = new Canvas()
             {
                 Title = name,
                 Owner = owner,
-                CanvasData = ""
+                CanvasData = canvasData
             };
 
-            note.Canvases.Add(canvas);
+            _context.Canvases.Add(canvas);
             await _context.SaveChangesAsync();
 
             return canvas;
@@ -46,16 +39,14 @@ namespace BlazorBuddy.WebApp.Repositories
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<List<Canvas>> GetCanvasesForNoteAsync(Guid noteId)
+        public async Task<List<Canvas>> GetCanvasesForUserAsync(string userId)
         {
-            var note = await _context.NoteDocuments
-                .Include(n => n.Canvases)
-                .FirstOrDefaultAsync(n => n.Id == noteId);
-
-            return note?.Canvases ?? new List<Canvas>();
+            return await _context.Canvases
+                .Where(c => c.Owner.Id == userId)
+                .ToListAsync();
         }
 
-        public async Task<bool> UpdateCanvasAsync(Guid id, string name)
+        public async Task<bool> UpdateCanvasAsync(Guid id, string name, string canvasData)
         {
             var canvas = await _context.Canvases.FindAsync(id);
 
@@ -63,6 +54,7 @@ namespace BlazorBuddy.WebApp.Repositories
                 return false;
 
             canvas.Title = name;
+            canvas.CanvasData = canvasData;
             await _context.SaveChangesAsync();
             return true;
         }

@@ -17,13 +17,13 @@ namespace BlazorBuddy.WebApp.Services
             _userRepo = userRepo;
         }
 
-        public async Task<Canvas> CreateCanvasAsync(string name, string userId, Guid noteId)
+        public async Task<Canvas> CreateCanvasAsync(string name, string canvasData, string userId)
         {
             var owner = await _userRepo.GetUserById(userId);
             if (owner == null)
                 throw new ArgumentException("User not found");
 
-            return await _canvasRepo.CreateCanvasAsync(name, owner, noteId);
+            return await _canvasRepo.CreateCanvasAsync(name, canvasData, owner);
         }
 
         public async Task<Canvas?> GetCanvasByIdAsync(Guid id)
@@ -31,14 +31,14 @@ namespace BlazorBuddy.WebApp.Services
             return await _canvasRepo.GetCanvasByIdAsync(id);
         }
 
-        public async Task<List<Canvas>> GetCanvasesForNoteAsync(Guid noteId)
+        public async Task<List<Canvas>> GetCanvasesForUserAsync(string userId)
         {
-            return await _canvasRepo.GetCanvasesForNoteAsync(noteId);
+            return await _canvasRepo.GetCanvasesForUserAsync(userId);
         }
 
-        public async Task<bool> UpdateCanvasAsync(Guid id, string name)
+        public async Task<bool> UpdateCanvasAsync(Guid id, string name, string canvasData)
         {
-            return await _canvasRepo.UpdateCanvasAsync(id, name);
+            return await _canvasRepo.UpdateCanvasAsync(id, name, canvasData);
         }
 
         public async Task<bool> DeleteCanvasAsync(Guid id, string userId)
