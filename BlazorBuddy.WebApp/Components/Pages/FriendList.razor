@@ -55,7 +55,7 @@
         </div>
 
         <div class="group-list">
-            @if (SentRequests == null || !SentRequests.Any())
+            @if (!SentRequests.Any())
             {
                 <div class="empty-text">Inga skickade förfrågningar.</div>
             }
@@ -83,7 +83,7 @@
         </div>
 
         <div class="group-list">
-            @if (ReceivedRequests == null || !ReceivedRequests.Any())
+            @if (!ReceivedRequests.Any())
             {
                 <div class="empty-text">Inga mottagna förfrågningar.</div>
             }
@@ -120,7 +120,7 @@
                    placeholder="Sök användare..." />
 
             <div style="margin-top: 1rem;">
-                @if (FilteredUsers == null || !FilteredUsers.Any())
+                @if (!FilteredUsers.Any())
                 {
                     <div class="empty-text">Inga användare hittades.</div>
                 }
@@ -208,7 +208,6 @@
         if (success)
         {
             await LoadFriendData();
-            StateHasChanged();
         }
     }
 
@@ -220,7 +219,6 @@
         if (success)
         {
             await LoadFriendData();
-            StateHasChanged();
         }
     }
 
@@ -233,7 +231,6 @@
         {
             await LoadFriendData();
             AddFriendDrawer?.Close();
-            StateHasChanged();
         }
     }
 
