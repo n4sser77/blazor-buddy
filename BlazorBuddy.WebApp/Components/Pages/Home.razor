@@ -101,7 +101,9 @@
                         <div class="stat-label">Total Notes</div>
                     </div>
                 </div>
-               @*  <div class="stat-card">
+
+                @*                 <div class="stat-card">
+
                     <div class="stat-icon">⚒️</div>
                     <div class="stat-content">
                         <div class="stat-number">@recentlyViewedNotes.Count</div>
@@ -246,7 +248,7 @@
             allStudyPages = await HomePageService.GetUserStudyPagesAsync(currentUserId);
             allNotes = await HomePageService.GetUserNotesAsync(allStudyPages);
 
-            
+
             recentlyViewedNotes = RecentlyViewedService.GetRecent().ToList();
         }
 
@@ -313,10 +315,10 @@
         var studyPage = allStudyPages.FirstOrDefault(sp => sp.Notes.Any(n => n.Id == note.Id));
         if (studyPage != null)
         {
-            
+
             RecentlyViewedService.Add(note);
 
-            
+
             recentlyViewedNotes = RecentlyViewedService.GetRecent().ToList();
 
             NavigationManager.NavigateTo($"/studypages/{studyPage.Id}/notes/{note.Id}");

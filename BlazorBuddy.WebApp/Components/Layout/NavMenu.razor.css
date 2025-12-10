@@ -26,6 +26,7 @@
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
+    
 }
 
 .navbar-brand {
@@ -33,6 +34,7 @@
     color: var(--text-main) !important;
     padding-left: 1rem;
     text-decoration: none;
+    
 }
 
 /* Nav Items & Links */

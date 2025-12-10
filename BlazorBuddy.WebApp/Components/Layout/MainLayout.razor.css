@@ -85,3 +85,11 @@ main {
         padding-right: 1.5rem !important;
     }
 }
+
+.logo-container {
+    padding: 13px;
+}
+
+.logo {
+    width: 50px;
+}

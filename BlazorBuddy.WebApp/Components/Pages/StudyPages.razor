@@ -1,4 +1,4 @@
-﻿ @page "/studypages"
+﻿@page "/studypages"
 @rendermode InteractiveServer
 @using BlazorBuddy.Models
 @using BlazorBuddy.WebApp.Services
@@ -22,10 +22,10 @@
     </div>
 
     <div class="search-section">
-        <input class="form-control search-input" 
-               type="text" 
-               placeholder=" Filter study pages..." 
-               @bind="searchQuery" 
+        <input class="form-control search-input"
+               type="text"
+               placeholder=" Filter study pages..."
+               @bind="searchQuery"
                @bind:event="oninput" />
     </div>
 
@@ -37,7 +37,7 @@
     {
         <div class="empty-state">
             @if (string.IsNullOrWhiteSpace(searchQuery))
-            {           
+            {
                 <p class="text-muted">You don't have any study pages yet. Create one to get started!</p>
             }
             else
@@ -54,7 +54,7 @@
                 <div class="study-page-card">
                     <div class="card-actions">
                         <button class="btn-icon" @onclick="() => ShowEditDialog(studyPage)" @onclick:stopPropagation="true" title="Edit">✏️</button>
-                        <button class="btn-icon" @onclick="() => ShowDeleteConfirm(studyPage.Id)" @onclick:stopPropagation="true" title="Delete">🗑️</button>
+                        <button class="btn-icon" @onclick="() => ShowDeleteConfirm(studyPage.Id, studyPage.Title)" @onclick:stopPropagation="true" title="Delete">🗑️</button>
                     </div>
                     <div @onclick="() => NavigateToNotes(studyPage.Id)">
                         <h3>@studyPage.Title</h3>
@@ -116,6 +116,7 @@
             <div class="modal-content" @onclick:stopPropagation="true">
                 <h2>Delete Study Page</h2>
                 <p>Are you sure you want to delete this study page? This action cannot be undone.</p>
+                <p>will delete "@deleteTitle"</p>
                 <div class="modal-actions">
                     <button class="btn btn-danger" @onclick="DeleteStudyPage">Delete</button>
                     <button class="btn btn-secondary" @onclick="HideDeleteConfirm">Cancel</button>
@@ -140,12 +141,13 @@
     private Guid deletingStudyPageId = Guid.Empty;
     private string currentUserId = "";
     private string searchQuery = "";
+    private string deleteTitle = "";
 
-    private List<StudyPage> filteredStudyPages => 
-        string.IsNullOrWhiteSpace(searchQuery) 
-            ? studyPages 
-            : studyPages.Where(sp => 
-                sp.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) || 
+    private List<StudyPage> filteredStudyPages =>
+        string.IsNullOrWhiteSpace(searchQuery)
+            ? studyPages
+            : studyPages.Where(sp =>
+                sp.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
                 sp.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
             ).ToList();
 
@@ -153,13 +155,13 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        
+
         if (user.Identity?.IsAuthenticated == true)
         {
             currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
             await LoadStudyPages();
         }
-        
+
         isLoading = false;
     }
 
@@ -200,10 +202,10 @@
             return; // User profile should exist after registration
 
         await StudyPageRepo.CreateStudyPageAsync(newTitle, newDescription, userProfile);
-        
+
         // Invalidate cache when creating new study page
         StateService.InvalidateCache();
-        
+
         await LoadStudyPages();
         HideCreateDialog();
     }
@@ -232,10 +234,11 @@
         HideEditDialog();
     }
 
-    private void ShowDeleteConfirm(Guid studyPageId)
+    private void ShowDeleteConfirm(Guid studyPageId, string title)
     {
         deletingStudyPageId = studyPageId;
         showDeleteConfirm = true;
+        deleteTitle = title;
     }
 
     private void HideDeleteConfirm()

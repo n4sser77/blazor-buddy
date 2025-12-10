@@ -296,34 +296,36 @@
         StateHasChanged();
     }
 
-    private async void HandleChatGroupUpdate(ChatGroup updatedGroup)
+    private void HandleChatGroupUpdate(ChatGroup updatedGroup)
     {
-        await InvokeAsync(() =>
-        {
-            var index = ActiveGroups.FindIndex(g => g.Id == updatedGroup.Id);
+        InvokeAsync(() =>
+     {
+         var index = ActiveGroups.FindIndex(g => g.Id == updatedGroup.Id);
+         if (CurrentUserId is null) return;
 
-            if (index != -1)
-                ActiveGroups[index] = updatedGroup;
-            else
-                ActiveGroups.Add(updatedGroup);
+         if (index != -1)
+             ActiveGroups[index] = updatedGroup;
+         else if (updatedGroup.IsUserInGroup(CurrentUserId))
+             ActiveGroups.Add(updatedGroup);
 
-            if (SelectedGroup?.Id == updatedGroup.Id)
-            {
-                SelectedGroup = updatedGroup;
-                StateHasChanged();
-                ScrollToBottom();
-            }
-            else
-            {
-                StateHasChanged();
-            }
-        });
+         if (SelectedGroup?.Id == updatedGroup.Id)
+         {
+             SelectedGroup = updatedGroup;
+             StateHasChanged();
+             ScrollToBottom();
+         }
+         else
+         {
+             StateHasChanged();
+         }
+
+     });
     }
 
     private async Task SelectGroup(ChatGroup group)
     {
         SelectedGroup = group;
-        
+
         ScrollToBottom();
     }
 
