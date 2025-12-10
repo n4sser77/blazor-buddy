@@ -52,6 +52,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<INoteRepo, NoteRepo>();
 builder.Services.AddScoped<IStudyPageRepo, StudyPageRepo>();
+builder.Services.AddScoped<IHomePageService, HomePageService>();
+builder.Services.AddSingleton<IRecentlyViewedService, RecentlyViewedService>();
 builder.Services.AddSingleton<StudyPageStateService>();
 builder.Services.AddSingleton<NotesStateService>();
 builder.Services.AddScoped<IImageRepo, ImageRepo>();
