@@ -138,7 +138,7 @@
                 @foreach (var u in AllUsers)
                 {
                     <div class="user-row">
-                        <span>@u.DisplayName (@u.Id)</span>
+                        <span>@u.DisplayName </span>
                         @if (SelectedGroup is not null)
                         {
                             @if (!SelectedGroup.IsUserInGroup(u.Id))
@@ -177,7 +177,7 @@
                 @foreach (var u in AllUsers)
                 {
                     <div class="user-row">
-                        <span>@u.DisplayName (@u.Id)</span>
+                        <span>@u.DisplayName </span>
                         @if (newChat is not null)
                         {
                             @if (!newChat.IsUserInGroup(u.Id))
