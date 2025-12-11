@@ -3,8 +3,11 @@
 @using BlazorBuddy.Models
 @using BlazorBuddy.WebApp.Repositories.Interfaces
 @using BlazorBuddy.WebApp.Components.Modules
+@using BlazorBuddy.WebApp.Services.Interfaces
 @using Microsoft.AspNetCore.Components.Authorization
+@inject IHomePageService HomePageService
 @inject IStudyPageRepo StudyPageRepo
+@inject IRecentlyViewedService RecentlyViewedService
 @inject INoteRepo NoteRepo
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -98,13 +101,15 @@
                         <div class="stat-label">Total Notes</div>
                     </div>
                 </div>
-                <div class="stat-card">
+
+                @*                 <div class="stat-card">
+
                     <div class="stat-icon">⚒️</div>
                     <div class="stat-content">
                         <div class="stat-number">@recentlyViewedNotes.Count</div>
                         <div class="stat-label">Under Construction</div>
                     </div>
-                </div>
+                </div> *@
             </div>
 
             <div class="recent-section">
@@ -223,13 +228,12 @@
     private List<NoteDocument> allNotes = new();
     private List<StudyPage> searchResultStudyPages = new();
     private List<NoteDocument> searchResultNotes = new();
-
     private List<NoteDocument> recentlyViewedNotes = new();
+
+    private CancellationTokenSource? searchCts;
 
     private int totalStudyPages => allStudyPages.Count;
     private int totalNotes => allNotes.Count;
-
-    private CancellationTokenSource? searchCts;
 
     protected override async Task OnInitializedAsync()
     {
@@ -241,25 +245,14 @@
             currentUserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
             userName = user.Identity.Name ?? "User";
 
-            await LoadData();
+            allStudyPages = await HomePageService.GetUserStudyPagesAsync(currentUserId);
+            allNotes = await HomePageService.GetUserNotesAsync(allStudyPages);
 
+
+            recentlyViewedNotes = RecentlyViewedService.GetRecent().ToList();
         }
 
         isInitialized = true;
-    }
-
-    private async Task LoadData()
-    {
-        allStudyPages = await StudyPageRepo.GetUserStudyPagesAsync(currentUserId);
-
-        allNotes = new List<NoteDocument>();
-
-        foreach (var studyPage in allStudyPages)
-        {
-            var notes = await NoteRepo.GetNotesForStudyPageAsync(studyPage.Id);
-            allNotes.AddRange(notes);
-            LoadRecentlyViewed(studyPage);
-        }
     }
 
     private void OnSearchFocus() => showSearchResults = true;
@@ -281,12 +274,12 @@
         try
         {
             await Task.Delay(300, token);
-            await PerformSearch();
+            await PerformSearch(token);
         }
         catch (TaskCanceledException) { }
     }
 
-    private async Task PerformSearch()
+    private async Task PerformSearch(CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(searchQuery))
         {
@@ -296,78 +289,53 @@
         }
 
         isSearching = true;
-        await Task.Delay(100);
+        await Task.Delay(100, token);
+
 
         searchResultStudyPages = allStudyPages
             .Where(sp => sp.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
                         sp.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
+
         searchResultNotes = allNotes
             .Where(n => n.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
-                       n.Content.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                        n.Content.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         isSearching = false;
         StateHasChanged();
     }
 
-    private void NavigateToStudyPage(Guid studyPageId) => NavigationManager.NavigateTo($"/studypages/{studyPageId}/notes");
+    private void NavigateToStudyPage(Guid studyPageId) =>
+        NavigationManager.NavigateTo($"/studypages/{studyPageId}/notes");
 
     private void NavigateToNote(NoteDocument note)
     {
         var studyPage = allStudyPages.FirstOrDefault(sp => sp.Notes.Any(n => n.Id == note.Id));
         if (studyPage != null)
         {
-            LoadRecentlyViewed(studyPage);
+
+            RecentlyViewedService.Add(note);
+
+
+            recentlyViewedNotes = RecentlyViewedService.GetRecent().ToList();
+
             NavigationManager.NavigateTo($"/studypages/{studyPage.Id}/notes/{note.Id}");
         }
     }
 
-    private List<NoteDocument> LoadRecentlyViewed(StudyPage studyPage)
+    private void ClearRecent()
     {
-
-        recentlyViewedNotes.AddRange(
-
-        studyPage.RecentNotes()
-        );
-
-        return recentlyViewedNotes;
-
-
+        RecentlyViewedService.Clear();
+        recentlyViewedNotes.Clear();
     }
 
+    private string GetContentPreview(string content) =>
+        HomePageService.GetContentPreview(content);
 
-
-    private void ClearRecent() => recentlyViewedNotes.Clear();
-
-    private string GetContentPreview(string content)
-    {
-        if (string.IsNullOrWhiteSpace(content))
-            return "No content yet...";
-
-        return content.Length > 100
-            ? content.Substring(0, 100) + "..."
-            : content;
-    }
-
-    private string GetTimeAgo(DateTime viewedAt)
-    {
-        var timeSpan = DateTime.Now - viewedAt;
-
-        if (timeSpan.TotalMinutes < 1)
-            return "Just now";
-        if (timeSpan.TotalMinutes < 60)
-            return $"{(int)timeSpan.TotalMinutes}m ago";
-        if (timeSpan.TotalHours < 24)
-            return $"{(int)timeSpan.TotalHours}h ago";
-        if (timeSpan.TotalDays < 7)
-            return $"{(int)timeSpan.TotalDays}d ago";
-
-        return viewedAt.ToString("MMM dd");
-    }
+    private string GetTimeAgo(DateTime viewedAt) =>
+        HomePageService.GetTimeAgo(viewedAt);
 
     private void GoToStudyPages() => NavigationManager.NavigateTo("/studypages");
-
-
 }

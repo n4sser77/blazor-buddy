@@ -69,7 +69,9 @@ namespace BlazorBuddy.WebApp.Repositories
 
         public async Task<bool> DeleteStudyPageAsync(Guid id, string userId)
         {
-            var studyPage = await _context.StudyPages.FindAsync(id);
+            var studyPage = await _context.StudyPages
+                    .Include(s => s.Owner)
+                    .FirstOrDefaultAsync(s => s.Id == id);
             if (studyPage == null || studyPage.Owner.Id != userId)
                 return false;
 
