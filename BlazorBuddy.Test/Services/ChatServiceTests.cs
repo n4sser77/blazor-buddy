@@ -20,8 +20,9 @@ public class ChatServiceTests
     public ChatServiceTests()
     {
         _sut = new ChatService(_chatRepoMock.Object, _userRepoMock.Object, _brokerMock.Object);
-
     }
+
+
 
     [Fact]
     public async Task AddUserToChatGroup_AddsUserIfNotAlreadyMemberAndNotifes()
@@ -105,6 +106,7 @@ public class ChatServiceTests
             Times.Once);
 
     }
+
 
 
 }
