@@ -43,31 +43,27 @@ namespace BlazorBuddy.Test.Integration
             _context.Add(testUser);
             await _context.SaveChangesAsync();
 
-            var studyPage = await _studyPageRepo.CreateStudyPageAsync("Test Study Page", "Description", testUser);
-            var note = await _noteRepo.CreateNoteAsync("Test Note", "Content", testUser, studyPage.Id);
-
             // Act
-            var canvas = await _canvasRepo.CreateCanvasAsync("Test Canvas", testUser, note.Id);
+            var canvas = await _canvasRepo.CreateCanvasAsync("Test Canvas", "canvas-data-123", testUser);
 
             // Assert
             var savedCanvas = await _context.Canvases.FindAsync(canvas.Id);
             Assert.NotNull(savedCanvas);
             Assert.Equal("Test Canvas", savedCanvas.Title);
             Assert.Equal(testUser.Id, savedCanvas.Owner.Id);
+            Assert.Equal("canvas-data-123", savedCanvas.CanvasData);
         }
         [Fact]
-        public async Task GetCanvasesForNoteAsync_ShouldReturnAllCanvases_WhenNoteExists()
+        public async Task GetCanvasesForUserAsync_ShouldReturnAllCanvases_WhenUserHasCanvases()
         {
             // Arrange
             var testUser = new UserProfile { Id = "test-user-canvas-2", DisplayName = "Anna" };
             _context.Add(testUser);
             await _context.SaveChangesAsync();
-            var studyPage = await _studyPageRepo.CreateStudyPageAsync("Test Study Page 2", "Description 2", testUser);
-            var note = await _noteRepo.CreateNoteAsync("Test Note 2", "Content 2", testUser, studyPage.Id);
-            var canvas1 = await _canvasRepo.CreateCanvasAsync("Canvas 1", testUser, note.Id);
-            var canvas2 = await _canvasRepo.CreateCanvasAsync("Canvas 2", testUser, note.Id);
+            var canvas1 = await _canvasRepo.CreateCanvasAsync("Canvas 1", "data-1", testUser);
+            var canvas2 = await _canvasRepo.CreateCanvasAsync("Canvas 2", "data-2", testUser);
             // Act
-            var canvases = await _canvasRepo.GetCanvasesForNoteAsync(note.Id);
+            var canvases = await _canvasRepo.GetCanvasesForUserAsync(testUser.Id);
             // Assert
             Assert.NotNull(canvases);
             Assert.Equal(2, canvases.Count);
@@ -75,12 +71,12 @@ namespace BlazorBuddy.Test.Integration
             Assert.Contains(canvases, c => c.Title == "Canvas 2");
         }
         [Fact]
-        public async Task GetCanvasesForNoteAsync_ShouldReturnEmptyList_WhenNoteDoesNotExist()
+        public async Task GetCanvasesForUserAsync_ShouldReturnEmptyList_WhenUserHasNoCanvases()
         {
             // Arrange
-            var nonExistentNoteId = Guid.NewGuid();
+            var nonExistentUserId = "non-existent-user";
             // Act
-            var canvases = await _canvasRepo.GetCanvasesForNoteAsync(nonExistentNoteId);
+            var canvases = await _canvasRepo.GetCanvasesForUserAsync(nonExistentUserId);
             // Assert
             Assert.NotNull(canvases);
             Assert.Empty(canvases);
@@ -92,16 +88,13 @@ namespace BlazorBuddy.Test.Integration
             var testUser = new UserProfile { Id = "test-user-canvas-3", DisplayName = "Mike" };
             _context.Add(testUser);
             await _context.SaveChangesAsync();
-            var studyPage = await _studyPageRepo.CreateStudyPageAsync("Test Study Page 3", "Description 3", testUser);
-            var note = await _noteRepo.CreateNoteAsync("Test Note 3", "Content 3", testUser, studyPage.Id);
-            var canvas = await _canvasRepo.CreateCanvasAsync("Canvas to Delete", testUser, note.Id);
+            var canvas = await _canvasRepo.CreateCanvasAsync("Canvas to Delete", "data", testUser);
             // Act
             var deleteResult = await _canvasRepo.DeleteCanvasAsync(canvas.Id);
             var deletedCanvas = await _context.Canvases.FindAsync(canvas.Id);
             // Assert
             Assert.True(deleteResult);
             Assert.Null(deletedCanvas);
-
         }
         [Fact]
         public async Task DeleteCanvasAsync_ShouldReturnFalse_WhenCanvasDoesNotExist()
@@ -120,29 +113,23 @@ namespace BlazorBuddy.Test.Integration
             var testUser = new UserProfile { Id = "test-user-canvas-4", DisplayName = "Sara" };
             _context.Add(testUser);
             await _context.SaveChangesAsync();
-            var studyPage = await _studyPageRepo.CreateStudyPageAsync("Test Study Page 4", "Description 4", testUser);
-            var note = await _noteRepo.CreateNoteAsync("Test Note 4", "Content 4", testUser, studyPage.Id);
-            var canvas = await _canvasRepo.CreateCanvasAsync("Original Canvas Title", testUser, note.Id);
+            var canvas = await _canvasRepo.CreateCanvasAsync("Original Canvas Title", "original-data", testUser);
             // Act
-            var updateResult = await _canvasRepo.UpdateCanvasAsync(canvas.Id, "Updated Canvas Title");
+            var updateResult = await _canvasRepo.UpdateCanvasAsync(canvas.Id, "Updated Canvas Title", "updated-data");
             var updatedCanvas = await _context.Canvases.FindAsync(canvas.Id);
             // Assert
             Assert.True(updateResult);
             Assert.NotNull(updatedCanvas);
             Assert.Equal("Updated Canvas Title", updatedCanvas.Title);
+            Assert.Equal("updated-data", updatedCanvas.CanvasData);
         }
         [Fact]
         public async Task UpdateCanvasAsync_ShouldReturnFalse_WhenCanvasDoesNotExist()
         {
             // Arrange
-            var nonExistentCanvas = new Canvas
-            {
-                Id = Guid.NewGuid(),
-                Title = "Non-Existent Canvas",
-                Owner = new UserProfile { Id = "test-user-canvas-5", DisplayName = "Tom" }
-            };
+            var nonExistentCanvasId = Guid.NewGuid();
             // Act
-            var updateResult = await _canvasRepo.UpdateCanvasAsync(nonExistentCanvas.Id, "Non-Existent Canvas");
+            var updateResult = await _canvasRepo.UpdateCanvasAsync(nonExistentCanvasId, "Non-Existent Canvas", "data");
             // Assert
             Assert.False(updateResult);
         }
