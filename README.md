@@ -32,15 +32,15 @@ git submodule update --init --recursive
 
 ### Running the Application
 
- Run the application:
+Run the application:
 
-   ```bash
-   dotnet run --project BlazorBuddy.WebApp
-   ```
+```bash
+dotnet run --project BlazorBuddy.WebApp
+```
 
-      *By default, the app uses `(localdb)\mssqllocaldb`. Ensure you have it installed or update `appsettings.json` with your connection string.*
+*By default, the app uses `(localdb)\mssqllocaldb`. Ensure you have it installed or update `appsettings.json` with your connection string.*
 
- Open your browser and navigate to `https://localhost:7000` (or the port shown in the terminal).
+Open your browser and navigate to `https://localhost:7000` (or the port shown in the terminal).
 
 ### Running Tests
 
