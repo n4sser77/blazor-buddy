@@ -42,7 +42,7 @@
         
         <div class="control-group">
             <button @onclick="ClearCanvas" class="btn btn-danger">Sudda</button>
-            <button @onclick="SaveDrawing" class="btn btn-primary" disabled="@isSaving">@(isSaving ? "Sparar..." : "Spara ritning")</button>
+            @* <button @onclick="SaveDrawing" class="btn btn-primary" disabled="@isSaving">@(isSaving ? "Sparar..." : "Spara ritning")</button> *@
         </div>
         
         @if (!string.IsNullOrEmpty(statusMessage))
