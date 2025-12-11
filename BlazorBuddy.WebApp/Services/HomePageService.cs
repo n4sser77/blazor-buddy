@@ -43,9 +43,17 @@ public class HomePageService : IHomePageService
 
     public List<NoteDocument> LoadRecentlyViewed(StudyPage studyPage, List<NoteDocument> recentlyViewedNotes)
     {
-        recentlyViewedNotes.AddRange(studyPage.RecentNotes());
+        var recents = studyPage.RecentNotes();
+
+        foreach (var note in recents)
+        {
+            if (!recentlyViewedNotes.Any(n => n.Id == note.Id))
+                recentlyViewedNotes.Add(note);
+        }
+
         return recentlyViewedNotes;
     }
+
 
     public string GetContentPreview(string content)
     {
@@ -57,17 +65,23 @@ public class HomePageService : IHomePageService
 
     public string GetTimeAgo(DateTime viewedAt)
     {
-        var timeSpan = DateTime.Now - viewedAt;
+        var localNow = DateTime.Now.ToLocalTime();
+        var localViewedAt = viewedAt.ToLocalTime();
+        var timeSpan = localNow - localViewedAt;
 
         if (timeSpan.TotalMinutes < 1)
             return "Just now";
+
         if (timeSpan.TotalMinutes < 60)
             return $"{(int)timeSpan.TotalMinutes}m ago";
+
         if (timeSpan.TotalHours < 24)
             return $"{(int)timeSpan.TotalHours}h ago";
+
         if (timeSpan.TotalDays < 7)
             return $"{(int)timeSpan.TotalDays}d ago";
 
         return viewedAt.ToString("MMM dd");
     }
+
 }

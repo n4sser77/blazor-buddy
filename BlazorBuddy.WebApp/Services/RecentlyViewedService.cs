@@ -13,10 +13,6 @@ namespace BlazorBuddy.WebApp.Services
         {
             
             _recentNotes.RemoveAll(n => n.Id == note.Id);
-
-            
-            note.VisitedAt = DateTime.Now;
-
             
             _recentNotes.Insert(0, note);
 

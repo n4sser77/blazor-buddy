@@ -250,6 +250,12 @@
 
 
             recentlyViewedNotes = RecentlyViewedService.GetRecent().ToList();
+            foreach (var page in allStudyPages)
+            {
+                
+                HomePageService.LoadRecentlyViewed(page, recentlyViewedNotes);
+            }
+
         }
 
         isInitialized = true;
@@ -315,8 +321,8 @@
         var studyPage = allStudyPages.FirstOrDefault(sp => sp.Notes.Any(n => n.Id == note.Id));
         if (studyPage != null)
         {
-
-            RecentlyViewedService.Add(note);
+            if (RecentlyViewedService.GetRecent().Any(p => p.Id != note.Id))
+                RecentlyViewedService.Add(note);
 
 
             recentlyViewedNotes = RecentlyViewedService.GetRecent().ToList();
