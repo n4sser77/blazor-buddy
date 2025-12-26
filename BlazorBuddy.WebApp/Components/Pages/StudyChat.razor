@@ -9,7 +9,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IChatService ChatService
-@inject IUserRepo UserRepo
+@inject IUserService UserService
 @inject IChatRepo ChatRepo
 @inject IChatEventBroker ChatBroker
 @attribute [Authorize]
@@ -240,10 +240,10 @@
 
 
         if (CurrentUserId is null) return;
-        CurrentUserProfile = await UserRepo.GetUserById(CurrentUserId);
+        CurrentUserProfile = await UserService.GetUserByIdAsync(CurrentUserId);
         if (CurrentUserProfile is null)
 
-            AllUsers = await UserRepo.GetAllUsers();
+            AllUsers = await UserService.GetAllUsersAsync();
         AllUsers = AllUsers.Where(u => u.Id != CurrentUserId).ToList();
 
 
@@ -256,7 +256,7 @@
     }
     private async Task UpdateFriendsList()
     {
-        AllUsers = await UserRepo.GetAllUsers();
+        AllUsers = await UserService.GetAllUsersAsync();
         AllUsers = AllUsers.Where(u => u.Id != CurrentUserProfile?.Id).ToList();
 
     }
@@ -285,7 +285,7 @@
     }
     private async Task CreateGroup(string title, List<UserProfile> users)
     {
-        var fetchedCurrentUser = await UserRepo.GetUserById(CurrentUserId!);
+        var fetchedCurrentUser = await UserService.GetUserByIdAsync(CurrentUserId!);
         if (fetchedCurrentUser is null)
             return;
         users.Add(fetchedCurrentUser);

@@ -62,6 +62,7 @@ builder.Services.AddScoped<NotesStateService>();
 builder.Services.AddScoped<IImageRepo, ImageRepo>();
 builder.Services.AddScoped<ICanvasRepo, CanvasRepo>();
 builder.Services.AddScoped<IUserRepo, UserProfileRepo>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IChatRepo, ChatRepo>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<IChatEventBroker, ChatEventBroker>();

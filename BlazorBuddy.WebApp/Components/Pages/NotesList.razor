@@ -4,11 +4,12 @@
 @using BlazorBuddy.Models
 @using BlazorBuddy.WebApp.Repositories.Interfaces
 @using BlazorBuddy.WebApp.Services
+@using BlazorBuddy.WebApp.Services.Interfaces
 @using Microsoft.AspNetCore.Authorization
 @using BlazorBuddy.Core.Interfaces
 @inject IStudyPageRepo StudyPageRepo
 @inject INoteRepo NoteRepo
-@inject IUserRepo UserRepo
+@inject IUserService UserService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NotesStateService NotesStateService
@@ -219,7 +220,7 @@
         if (string.IsNullOrWhiteSpace(newTitle) || string.IsNullOrWhiteSpace(currentUserId))
             return;
 
-        var userProfile = await UserRepo.GetUserById(currentUserId);
+        var userProfile = await UserService.GetUserByIdAsync(currentUserId);
         if (userProfile == null)
             return; // User profile should exist after registration
 

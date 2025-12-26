@@ -8,7 +8,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IFriendShipService FriendService
-@inject IUserRepo UserRepo
+@inject IUserService UserService
 @attribute [Authorize]
 
 <PageTitle>Friend List</PageTitle>
@@ -186,7 +186,7 @@
 
         if (CurrentUserId is null) return;
         
-        CurrentUserProfile = await UserRepo.GetUserById(CurrentUserId);
+        CurrentUserProfile = await UserService.GetUserByIdAsync(CurrentUserId);
         await LoadFriendData();
     }
 

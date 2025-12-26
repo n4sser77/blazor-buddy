@@ -2,12 +2,13 @@
 @rendermode InteractiveServer
 @using BlazorBuddy.Models
 @using BlazorBuddy.WebApp.Services
+@using BlazorBuddy.WebApp.Services.Interfaces
 @using BlazorBuddy.WebApp.Repositories.Interfaces
 @using BlazorBuddy.WebApp
 @using Microsoft.AspNetCore.Authorization
 @using BlazorBuddy.Core.Interfaces
 @inject IStudyPageRepo StudyPageRepo
-@inject IUserRepo UserRepo
+@inject IUserService UserService
 @inject StudyPageStateService StateService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
@@ -197,7 +198,7 @@
         if (string.IsNullOrWhiteSpace(newTitle) || string.IsNullOrWhiteSpace(currentUserId))
             return;
 
-        var userProfile = await UserRepo.GetUserById(currentUserId);
+        var userProfile = await UserService.GetUserByIdAsync(currentUserId);
         if (userProfile == null)
             return; // User profile should exist after registration
 
