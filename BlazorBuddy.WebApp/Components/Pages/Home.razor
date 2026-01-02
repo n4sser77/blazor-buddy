@@ -1,14 +1,13 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 @using BlazorBuddy.Models
-@using BlazorBuddy.WebApp.Repositories.Interfaces
 @using BlazorBuddy.WebApp.Components.Modules
 @using BlazorBuddy.WebApp.Services.Interfaces
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IHomePageService HomePageService
-@inject IStudyPageRepo StudyPageRepo
+@inject IStudyPageService StudyPageService
 @inject IRecentlyViewedService RecentlyViewedService
-@inject INoteRepo NoteRepo
+@inject INoteService NoteService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 

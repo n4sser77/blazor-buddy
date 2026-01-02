@@ -3,11 +3,10 @@
 @using BlazorBuddy.Models
 @using BlazorBuddy.WebApp.Services
 @using BlazorBuddy.WebApp.Services.Interfaces
-@using BlazorBuddy.WebApp.Repositories.Interfaces
 @using BlazorBuddy.WebApp
 @using Microsoft.AspNetCore.Authorization
 @using BlazorBuddy.Core.Interfaces
-@inject IStudyPageRepo StudyPageRepo
+@inject IStudyPageService StudyPageService
 @inject IUserService UserService
 @inject StudyPageStateService StateService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -176,7 +175,7 @@
         else
         {
             // Fetch from database and cache
-            studyPages = await StudyPageRepo.GetUserStudyPagesAsync(currentUserId);
+            studyPages = await StudyPageService.GetUserStudyPagesAsync(currentUserId);
             StateService.SetStudyPages(studyPages);
         }
     }
@@ -202,7 +201,7 @@
         if (userProfile == null)
             return; // User profile should exist after registration
 
-        await StudyPageRepo.CreateStudyPageAsync(newTitle, newDescription, userProfile);
+        await StudyPageService.CreateStudyPageAsync(newTitle, newDescription, userProfile);
 
         // Invalidate cache when creating new study page
         StateService.InvalidateCache();
@@ -229,7 +228,7 @@
         if (string.IsNullOrWhiteSpace(editTitle))
             return;
 
-        await StudyPageRepo.UpdateStudyPageAsync(editingStudyPageId, editTitle, editDescription);
+        await StudyPageService.UpdateStudyPageAsync(editingStudyPageId, editTitle, editDescription);
         StateService.InvalidateCache();
         await LoadStudyPages();
         HideEditDialog();
@@ -249,7 +248,7 @@
 
     private async Task DeleteStudyPage()
     {
-        await StudyPageRepo.DeleteStudyPageAsync(deletingStudyPageId, currentUserId);
+        await StudyPageService.DeleteStudyPageAsync(deletingStudyPageId, currentUserId);
         StateService.InvalidateCache();
         await LoadStudyPages();
         HideDeleteConfirm();
