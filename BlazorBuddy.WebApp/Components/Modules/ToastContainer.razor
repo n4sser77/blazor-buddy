@@ -1,0 +1,66 @@
+@using BlazorBuddy.Models
+@using BlazorBuddy.WebApp.Services.Interfaces
+@inject INotificationService NotificationService
+@implements IDisposable
+@rendermode InteractiveServer
+
+<div class="toast-container">
+    @foreach (var notification in _notifications)
+    {
+        <ToastNotification 
+            Title="@notification.Title" 
+            Description="@notification.Description"
+            Type="@notification.Type"
+            OnClose="@(() => RemoveNotification(notification.Id))" />
+    }
+</div>
+
+@code {
+    private List<Notification> _notifications = new();
+    private const int MaxNotifications = 5;
+    private const int AutoDismissMs = 5000;
+
+    protected override void OnInitialized()
+    {
+        NotificationService.OnNotificationReceived += HandleNotification;
+    }
+
+    private async void HandleNotification(Notification notification)
+    {
+        await InvokeAsync(() =>
+        {
+            // Add new notification
+            _notifications.Add(notification);
+
+            // Keep only the most recent notifications
+            if (_notifications.Count > MaxNotifications)
+            {
+                _notifications.RemoveAt(0);
+            }
+
+            StateHasChanged();
+        });
+
+        // Auto-dismiss after delay
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(AutoDismissMs);
+            await InvokeAsync(() => RemoveNotification(notification.Id));
+        });
+    }
+
+    private void RemoveNotification(Guid id)
+    {
+        var notification = _notifications.FirstOrDefault(n => n.Id == id);
+        if (notification != null)
+        {
+            _notifications.Remove(notification);
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        NotificationService.OnNotificationReceived -= HandleNotification;
+    }
+}

@@ -1,0 +1,50 @@
+@inherits ComponentBase
+
+<div class="toast-notification @(IsVisible ? "show" : "")">
+    <div class="toast-icon">
+        @GetIcon(Type)
+    </div>
+    <div class="toast-content">
+        <div class="toast-title">@Title</div>
+        <div class="toast-description">@Description</div>
+    </div>
+    <button class="toast-close" @onclick="Close" aria-label="Close notification">
+        &times;
+    </button>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public BlazorBuddy.Models.NotificationType Type { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private bool IsVisible = false;
+
+    protected override void OnInitialized()
+    {
+        // Show toast after component is initialized
+        IsVisible = true;
+    }
+
+    private async Task Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+        
+        // Wait for animation to complete before notifying parent
+        await Task.Delay(300);
+        await OnClose.InvokeAsync();
+    }
+
+    private string GetIcon(BlazorBuddy.Models.NotificationType type)
+    {
+        return type switch
+        {
+            BlazorBuddy.Models.NotificationType.ChatMessage => "💬",
+            BlazorBuddy.Models.NotificationType.ChatGroupInvite => "👥",
+            BlazorBuddy.Models.NotificationType.FriendRequest => "🤝",
+            _ => "🔔"
+        };
+    }
+}
