@@ -17,6 +17,7 @@
 
 @code {
     private List<Notification> _notifications = new();
+    private Dictionary<Guid, System.Threading.Timer> _timers = new();
     private const int MaxNotifications = 5;
     private const int AutoDismissMs = 5000;
 
@@ -25,9 +26,9 @@
         NotificationService.OnNotificationReceived += HandleNotification;
     }
 
-    private async void HandleNotification(Notification notification)
+    private void HandleNotification(Notification notification)
     {
-        await InvokeAsync(() =>
+        InvokeAsync(() =>
         {
             // Add new notification
             _notifications.Add(notification);
@@ -35,17 +36,26 @@
             // Keep only the most recent notifications
             if (_notifications.Count > MaxNotifications)
             {
+                var removed = _notifications[0];
                 _notifications.RemoveAt(0);
+                
+                // Clean up timer for removed notification
+                if (_timers.TryGetValue(removed.Id, out var oldTimer))
+                {
+                    oldTimer.Dispose();
+                    _timers.Remove(removed.Id);
+                }
             }
 
             StateHasChanged();
-        });
 
-        // Auto-dismiss after delay
-        _ = Task.Run(async () =>
-        {
-            await Task.Delay(AutoDismissMs);
-            await InvokeAsync(() => RemoveNotification(notification.Id));
+            // Auto-dismiss after delay using Timer
+            var timer = new System.Threading.Timer(_ =>
+            {
+                InvokeAsync(() => RemoveNotification(notification.Id));
+            }, null, AutoDismissMs, Timeout.Infinite);
+            
+            _timers[notification.Id] = timer;
         });
     }
 
@@ -55,6 +65,14 @@
         if (notification != null)
         {
             _notifications.Remove(notification);
+            
+            // Clean up timer
+            if (_timers.TryGetValue(id, out var timer))
+            {
+                timer.Dispose();
+                _timers.Remove(id);
+            }
+            
             StateHasChanged();
         }
     }
@@ -62,5 +80,12 @@
     public void Dispose()
     {
         NotificationService.OnNotificationReceived -= HandleNotification;
+        
+        // Dispose all timers
+        foreach (var timer in _timers.Values)
+        {
+            timer.Dispose();
+        }
+        _timers.Clear();
     }
 }
