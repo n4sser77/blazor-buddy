@@ -11,7 +11,6 @@
 @inject INoteRepo NoteRepo
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
-@inject INotificationService NotificationService
 
 <PageTitle>Home - BlazorBuddy</PageTitle>
 
@@ -85,21 +84,6 @@
             <div class="welcome-section">
                 <h1>Welcome back, @userName! 👋</h1>
                 <p class="welcome-subtitle">Here's what you've been working on</p>
-            </div>
-
-            <div class="notification-demo-section" style="margin-bottom: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 0.5rem;">
-                <h3 style="margin-bottom: 1rem;">🔔 Test Notifications</h3>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <button class="btn btn-primary" @onclick="() => TestNotification(BlazorBuddy.Models.NotificationType.ChatMessage)">
-                        Chat Message
-                    </button>
-                    <button class="btn btn-primary" @onclick="() => TestNotification(BlazorBuddy.Models.NotificationType.ChatGroupInvite)">
-                        Group Invite
-                    </button>
-                    <button class="btn btn-primary" @onclick="() => TestNotification(BlazorBuddy.Models.NotificationType.FriendRequest)">
-                        Friend Request
-                    </button>
-                </div>
             </div>
 
             <div class="stats-grid">
@@ -352,20 +336,4 @@
         HomePageService.GetTimeAgo(viewedAt);
 
     private void GoToStudyPages() => NavigationManager.NavigateTo("/studypages");
-
-    private void TestNotification(BlazorBuddy.Models.NotificationType type)
-    {
-        var (title, description) = type switch
-        {
-            BlazorBuddy.Models.NotificationType.ChatMessage => 
-                ("New Message", "You have a new message from John Doe"),
-            BlazorBuddy.Models.NotificationType.ChatGroupInvite => 
-                ("Group Invite", "You've been invited to join 'Study Group'"),
-            BlazorBuddy.Models.NotificationType.FriendRequest => 
-                ("Friend Request", "Jane Smith sent you a friend request"),
-            _ => ("Notification", "You have a new notification")
-        };
-
-        NotificationService.ShowNotification(title, description, type);
-    }
 }
