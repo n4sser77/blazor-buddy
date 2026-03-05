@@ -108,7 +108,10 @@ public class NotificationServiceTests
 
         // Assert
         Assert.Equal(expectedCallCount, actualReceivedIds.Count);
-        Assert.Equal(actualReceivedIds.Count, actualReceivedIds.Distinct().Count()); // All IDs are unique
+        
+        var actualDistinctCount = actualReceivedIds.Distinct().Count();
+        Assert.Equal(expectedCallCount, actualDistinctCount); // All IDs are unique
+        
         Assert.All(actualReceivedIds, actualId => Assert.NotEqual(Guid.Empty, actualId));
     }
 }
