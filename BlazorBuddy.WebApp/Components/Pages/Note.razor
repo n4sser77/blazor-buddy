@@ -1,10 +1,10 @@
 ﻿@page "/studypages/{StudyPageId:guid}/notes/{NoteId:guid}"
 @using BlazorBuddy.Models
-@using BlazorBuddy.WebApp.Repositories.Interfaces
+@using BlazorBuddy.WebApp.Services.Interfaces
 @using PSC.Blazor.Components.MarkdownEditor
 @using PSC.Blazor.Components.MarkdownEditor.Enums
 @using PSC.Blazor.Components.MarkdownEditor.EventsArgs
-@inject INoteRepo NoteRepo
+@inject INoteService NoteService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -90,8 +90,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        CurrentNote = await NoteRepo.GetNoteByIdAsync(NoteId);
-       await NoteRepo.UpdateVisitedAtAsync(NoteId, DateTime.UtcNow);
+        CurrentNote = await NoteService.GetNoteByIdAsync(NoteId);
+       await NoteService.UpdateVisitedAtAsync(NoteId, DateTime.UtcNow);
        
 
         if (CurrentNote == null)
@@ -105,7 +105,7 @@ else
     {
         if (CurrentNote != null)
         {
-            await NoteRepo.UpdateNoteAsync(NoteId, CurrentNote.Title, CurrentNote.Content);
+            await NoteService.UpdateNoteAsync(NoteId, CurrentNote.Title, CurrentNote.Content);
         }
     }
 

@@ -2,13 +2,13 @@
 @attribute [Authorize]
 @rendermode InteractiveServer
 @using BlazorBuddy.Models
-@using BlazorBuddy.WebApp.Repositories.Interfaces
 @using BlazorBuddy.WebApp.Services
+@using BlazorBuddy.WebApp.Services.Interfaces
 @using Microsoft.AspNetCore.Authorization
 @using BlazorBuddy.Core.Interfaces
-@inject IStudyPageRepo StudyPageRepo
-@inject INoteRepo NoteRepo
-@inject IUserRepo UserRepo
+@inject IStudyPageService StudyPageService
+@inject INoteService NoteService
+@inject IUserService UserService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NotesStateService NotesStateService
@@ -179,7 +179,7 @@
 
     private async Task LoadStudyPageInfo()
     {
-        var studyPage = await StudyPageRepo.GetStudyPageByIdAsync(StudyPageId);
+        var studyPage = await StudyPageService.GetStudyPageByIdAsync(StudyPageId);
         if (studyPage != null)
         {
             studyPageTitle = studyPage.Title;
@@ -197,7 +197,7 @@
         else
         {
             // Fetch from database and cache
-            notes = await NoteRepo.GetNotesForStudyPageAsync(StudyPageId);
+            notes = await NoteService.GetNotesForStudyPageAsync(StudyPageId);
             NotesStateService.SetNotes(StudyPageId, notes);
         }
     }
@@ -219,11 +219,11 @@
         if (string.IsNullOrWhiteSpace(newTitle) || string.IsNullOrWhiteSpace(currentUserId))
             return;
 
-        var userProfile = await UserRepo.GetUserById(currentUserId);
+        var userProfile = await UserService.GetUserByIdAsync(currentUserId);
         if (userProfile == null)
             return; // User profile should exist after registration
 
-        await NoteRepo.CreateNoteAsync(newTitle, newContent, userProfile, StudyPageId);
+        await NoteService.CreateNoteAsync(newTitle, newContent, userProfile, StudyPageId);
         NotesStateService.InvalidateCache(StudyPageId);
         await LoadNotes();
         HideCreateDialog();
@@ -262,7 +262,7 @@
         if (string.IsNullOrWhiteSpace(editTitle))
             return;
 
-        await NoteRepo.UpdateNoteAsync(editingNoteId, editTitle, editContent);
+        await NoteService.UpdateNoteAsync(editingNoteId, editTitle, editContent);
         NotesStateService.InvalidateCache(StudyPageId);
         await LoadNotes();
         HideEditDialog();
@@ -281,7 +281,7 @@
 
     private async Task DeleteNote()
     {
-        await NoteRepo.DeleteNoteAsync(deletingNoteId, currentUserId);
+        await NoteService.DeleteNoteAsync(deletingNoteId, currentUserId);
         NotesStateService.InvalidateCache(StudyPageId);
         await LoadNotes();
         HideDeleteConfirm();
